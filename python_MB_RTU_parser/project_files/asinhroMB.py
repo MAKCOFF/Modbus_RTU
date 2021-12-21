@@ -14,6 +14,7 @@ setting_RTU = {
     "port": 'COM4',
     "baudrate": 9600,
     "timeout": 0.1,
+    "stopbits": 1,
 }
 arguments_for_write = ([16], 8, 0)
 arguments_for_read = ([16], 16, 0)
