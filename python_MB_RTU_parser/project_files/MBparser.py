@@ -6,6 +6,7 @@ import time
 import traceback
 from pymodbus.client.sync import ModbusSerialClient as pyRtu
 from MB_while import read_holding_regs_while
+import Settings_RTU
 
 # import asyncio
 
@@ -22,54 +23,57 @@ scan = True
 
 
 class MBScraper:
+    count_obj = 0
+    pymc = pyRtu(Settings_RTU.setting_RTU)
 
-    setting_RTU = {
-        "method": 'rtu',
-        "port": 'COM4',
-        "baudrate": 9600,
-        "timeout": 0.1,
-        "stopbits": 1,
-    }
-
-    pymc = pyRtu(setting_RTU)
+    def __init__(self):
+        MBScraper.count_obj += 1
+        print("Created obj of MBScraper - ", self.count_obj)
+        self.data_holding = []
+        self.data_input = []
+        self.dats_discrete = []
+        self.dats_coil = []
 
     def read_holding_regs(self,
-                          slavesArr,
-                          regsSp,
-                          beginSp
+                          slaves_arr,
+                          regs_sp,
+                          begin_sp
                           ):
-        errCnt = 0
-        startTs = time.time()
 
-        data_read = []
+        err_cnt = 0
+        start_ts = time.time()
 
-        for slaveId in slavesArr:
+        # data_read = []
 
-            for p in range(beginSp, regsSp):
+        for slaveId in slaves_arr:
+
+            for p in range(begin_sp, regs_sp):
 
                 try:
                     data = MBScraper.pymc.read_holding_registers(p, 1, unit=slaveId)
-                    data_read.append(data.registers)
+                    self.data_holding.append(data.registers)
                 except AttributeError:
-                    errCnt += 1
+                    err_cnt += 1
                     tb = traceback.format_exc()
-                    data_read.append(str("None"))
+                    self.data_holding.append(str("None"))
 
-        stopTs = time.time()
-        timeDiff = stopTs - startTs
-        fact_reg = len(data_read) - errCnt
+        stop_ts = time.time()
+        time_diff = stop_ts - start_ts
+        fact_reg = len(self.data_holding) - err_cnt
 
-        print("Запрошено", len(data_read),
+        print("Запрошено", len(self.data_holding),
               "регистров по одному(size 2 BYTE) за каждый запрос \n",
-              "Считано c устройства", slaveId, "HOLDING регистров", fact_reg, "\n", data_read, "\n",
-              "за %.3f sec" % timeDiff)
+              "Считано c устройства", slaveId, "HOLDING регистров", fact_reg, "\n", self.data_holding, "\n",
+              "за %.3f sec" % time_diff)
 
-        if errCnt > 0:
-            print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
+        if err_cnt > 0:
+            print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, tb))
+
+        return self.data_holding
 
         # print("\r", data, data.registers, end="")
         # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
-        # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
+        # len(slavesArr), iterSp, regsSp, time_diff, time_diff / iterSp))
 
     def read_input_regs(self,
                         slavesArr,
@@ -109,7 +113,7 @@ class MBScraper:
         # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
         # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
 
-    def read_discret_inputs(self,
+    def read_discrete_inputs(self,
                             slavesArr,
                             regsSp,
                             beginSp
@@ -213,7 +217,7 @@ if __name__ == '__main__':
         for j in range(1):
             MBScraper.read_holding_regs(exemp_1, [16], 16, 0)
             # MBScraper.read_input_regs(exemp_1, [16], 11, 0)
-            # MBScraper.read_discret_inputs(exemp_1, [16], 23, 0)
+            # MBScraper.read_discrete_inputs(exemp_1, [16], 23, 0)
             # MBScraper.read_coil_regs(exemp_1, [16], 5, 0)
             # pymc.close()
 
