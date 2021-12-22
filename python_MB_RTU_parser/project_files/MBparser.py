@@ -5,11 +5,9 @@ MODE 1. Сканирует заданные регистры по одному, 
 """
 import time
 import traceback
-from pymodbus.client.sync import ModbusSerialClient as pyRtu
+from pymodbus.client.sync import ModbusSerialClient  # as pyRtu
 from MB_while import read_holding_regs_while
-import Settings_RTU
-
-# import asyncio
+import Settings_MB
 
 mode = 1
 scan = True
@@ -23,9 +21,9 @@ scan = True
 # print("timeout: %s [s]" % timeoutSp)
 
 
-class MBScraper:
+class MBScraper(ModbusSerialClient):
     count_obj = 0
-    pymc = pyRtu(Settings_RTU.setting_RTU)
+    client = ModbusSerialClient(Settings_MB.setting_RTU)
 
     def __init__(self):
         MBScraper.count_obj += 1
@@ -34,30 +32,27 @@ class MBScraper:
         self.data_input = []
         self.dats_discrete = []
         self.dats_coil = []
+        self.slaves_arr = Settings_MB.slaves_arr
+        self.regs_sp = Settings_MB.regs_sp
+        self.begin_sp = Settings_MB.begin_sp
+        self.tb = None
+        self.result = []
 
-    def read_holding_regs(self,
-                          slaves_arr,
-                          regs_sp,
-                          begin_sp
-                          ):
+        ModbusSerialClient.__init__(self)
+
+    def read_holding_regs(self, slaves_arr, regs_sp, begin_sp):
 
         err_cnt = 0
         start_ts = time.time()
-
-        # data_read = []
-
         for slaveId in slaves_arr:
-
-            for p in range(begin_sp, regs_sp):
-
+            for i in range(begin_sp, regs_sp):
                 try:
-                    data = MBScraper.pymc.read_holding_registers(p, 1, unit=slaveId)
+                    data = MBScraper.client.read_holding_registers(i, 1, unit=slaveId)
                     self.data_holding.append(data.registers)
                 except AttributeError:
                     err_cnt += 1
-                    tb = traceback.format_exc()
+                    self.tb = traceback.format_exc()
                     self.data_holding.append(str("None"))
-
         stop_ts = time.time()
         time_diff = stop_ts - start_ts
         fact_reg = len(self.data_holding) - err_cnt
@@ -68,13 +63,14 @@ class MBScraper:
               "за %.3f sec" % time_diff)
 
         if err_cnt > 0:
-            print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, tb))
-
-        return self.data_holding
-
+            print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
         # print("\r", data, data.registers, end="")
         # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
         # len(slavesArr), iterSp, regsSp, time_diff, time_diff / iterSp))
+
+        self.result = [slaveId, self.data_holding, fact_reg, time_diff, self.tb, err_cnt]
+
+        return self.result
 
     def read_input_regs(self,
                         slavesArr,
@@ -91,7 +87,7 @@ class MBScraper:
             for p in range(beginSp, regsSp):
 
                 try:
-                    data = MBScraper.pymc.read_input_registers(p, 1, unit=slaveId)
+                    data = MBScraper.client.read_input_registers(p, 1, unit=slaveId)
                     data_read.append(data.registers)
                 except AttributeError:
                     errCnt += 1
@@ -114,11 +110,11 @@ class MBScraper:
         # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
         # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
 
-    def read_discrete_inputs(self,
-                            slavesArr,
-                            regsSp,
-                            beginSp
-                            ):
+    def mbs_read_discrete_inputs(self,
+                                 slavesArr,
+                                 regsSp,
+                                 beginSp
+                                 ):
         errCnt = 0
         startTs = time.time()
 
@@ -129,7 +125,7 @@ class MBScraper:
             for p in range(beginSp, regsSp):
 
                 try:
-                    data = MBScraper.pymc.read_discrete_inputs(p, 1, unit=slaveId)
+                    data = MBScraper.client.read_discrete_inputs(p, 1, unit=slaveId)
                     data_read.append(data.bits)
                 except AttributeError:
                     errCnt += 1
@@ -176,7 +172,7 @@ class MBScraper:
             for p in range(beginSp, regsSp):
 
                 try:
-                    data = MBScraper.pymc.read_coils(p, 1, unit=slaveId)
+                    data = MBScraper.client.read_coils(p, 1, unit=slaveId)
                     data_read.append(data.bits)
                 except AttributeError:
                     errCnt += 1
@@ -236,4 +232,4 @@ if __name__ == '__main__':
     #           "3. Режим записи в регистры: \n"
     #           "3.1 циклической\n"
     #           "3.2 разовой\n")
-MBScraper.pymc.close()
+MBScraper.client.close()

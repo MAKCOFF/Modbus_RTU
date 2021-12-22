@@ -5,3 +5,7 @@ setting_RTU = {
     "timeout": 0.1,
     "stopbits": 1,
 }
+# Аргументы для вызова
+slaves_arr = [16]
+regs_sp = 1
+begin_sp = 0

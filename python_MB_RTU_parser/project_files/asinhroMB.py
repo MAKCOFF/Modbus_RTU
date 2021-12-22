@@ -20,6 +20,7 @@ arguments_for_write = ([16], 8, 0)
 arguments_for_read = ([16], 16, 0)
 
 pymc = pyRtu(setting_RTU)
+stop = False
 
 
 async def read_holding_regs_while(slaves_arr, regs_sp, begin_sp):
@@ -70,10 +71,14 @@ async def main():
     task2 = asyncio.create_task(write_holding_reg(*arguments_for_write))
 
     await asyncio.gather(task1, task2)
-
+    if stop:
+        task1.cancel()
+        task2.cancel()
 
 # class MBAsyncScraper:
 
 
 if __name__ == '__main__':
     asyncio.run(main())
+
+
