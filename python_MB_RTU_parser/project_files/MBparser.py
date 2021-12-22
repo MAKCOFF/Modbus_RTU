@@ -6,7 +6,7 @@ MODE 1. Сканирует заданные регистры по одному, 
 """
 import time
 import traceback
-from pymodbus.client.sync import ModbusSerialClient  # as pyRtu
+from pymodbus.client.sync import ModbusSerialClient as client_RTU
 from MB_while import read_holding_regs_while
 import Settings_MB
 
@@ -21,9 +21,16 @@ scan = True
 # timeoutSp = 0.1  # 0.018 + regsSp*0
 # print("timeout: %s [s]" % timeoutSp)
 
-class MBScraper(ModbusSerialClient):
+class MBScraper(client_RTU):
+    """
+    Для вызова каждой функции класса создается новый объект класса.
+    Объекту передаются аргументы, использемые для вызываемой функции
+    slaves_arr - список адресов слэйвов
+    regs_sp - число запрашиваемых регистров
+    begin_sp - стартовый адрес регистров
+    """
     count_obj = 0
-    client = ModbusSerialClient(Settings_MB.setting_RTU)
+    client = client_RTU(Settings_MB.setting_RTU)
     slaves_arr = Settings_MB.slaves_arr    # default value
     regs_sp = Settings_MB.regs_sp          # default value
     begin_sp = Settings_MB.begin_sp        # default value
@@ -38,7 +45,7 @@ class MBScraper(ModbusSerialClient):
         self.tb = None
         self.result = []
 
-        ModbusSerialClient.__init__(self)
+        client_RTU.__init__(self)
 
     def read_holding_regs(self):
         err_cnt = 0
@@ -47,6 +54,7 @@ class MBScraper(ModbusSerialClient):
             for i in range(self.begin_sp, self.regs_sp):
                 try:
                     data = MBScraper.client.read_holding_registers(i, 1, unit=slaveId)
+                    assert (not data.isError())  # test that we are not an error
                     self.data_result.append(data.registers)
                 except AttributeError:
                     err_cnt += 1
