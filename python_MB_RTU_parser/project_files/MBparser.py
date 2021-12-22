@@ -24,42 +24,41 @@ scan = True
 class MBScraper(ModbusSerialClient):
     count_obj = 0
     client = ModbusSerialClient(Settings_MB.setting_RTU)
+    slaves_arr = Settings_MB.slaves_arr      # default value
+    regs_sp = Settings_MB.regs_sp            # default value
+    begin_sp = Settings_MB.begin_sp          # default value
 
-    def __init__(self):
+    def __init__(self, slaves_arr, regs_sp, begin_sp):
         MBScraper.count_obj += 1
         print("Created obj of MBScraper - ", self.count_obj)
-        self.data_holding = []
-        self.data_input = []
-        self.dats_discrete = []
-        self.dats_coil = []
-        self.slaves_arr = Settings_MB.slaves_arr
-        self.regs_sp = Settings_MB.regs_sp
-        self.begin_sp = Settings_MB.begin_sp
+        self.data_result = []
+        self.slaves_arr = slaves_arr
+        self.regs_sp = regs_sp
+        self.begin_sp = begin_sp
         self.tb = None
         self.result = []
 
         ModbusSerialClient.__init__(self)
 
-    def read_holding_regs(self, slaves_arr, regs_sp, begin_sp):
-
+    def read_holding_regs(self):
         err_cnt = 0
         start_ts = time.time()
-        for slaveId in slaves_arr:
-            for i in range(begin_sp, regs_sp):
+        for slaveId in self.slaves_arr:
+            for i in range(self.begin_sp, self.regs_sp):
                 try:
                     data = MBScraper.client.read_holding_registers(i, 1, unit=slaveId)
-                    self.data_holding.append(data.registers)
+                    self.data_result.append(data.registers)
                 except AttributeError:
                     err_cnt += 1
                     self.tb = traceback.format_exc()
-                    self.data_holding.append(str("None"))
+                    self.data_result.append(str("None"))
         stop_ts = time.time()
         time_diff = stop_ts - start_ts
-        fact_reg = len(self.data_holding) - err_cnt
+        fact_reg = len(self.data_result) - err_cnt
 
-        print("Запрошено", len(self.data_holding),
+        print("Запрошено", len(self.data_result),
               "регистров по одному(size 2 BYTE) за каждый запрос \n",
-              "Считано c устройства", slaveId, "HOLDING регистров", fact_reg, "\n", self.data_holding, "\n",
+              "Считано c устройства", slaveId, "HOLDING регистров", fact_reg, "\n", self.data_result, "\n",
               "за %.3f sec" % time_diff)
 
         if err_cnt > 0:
@@ -68,7 +67,7 @@ class MBScraper(ModbusSerialClient):
         # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
         # len(slavesArr), iterSp, regsSp, time_diff, time_diff / iterSp))
 
-        self.result = [slaveId, self.data_holding, fact_reg, time_diff, self.tb, err_cnt]
+        self.result = [slaveId, self.data_result, fact_reg, time_diff, self.tb, err_cnt]
 
         return self.result
 
@@ -210,9 +209,9 @@ if __name__ == '__main__':
 
     if mode == 1:
         # Сканирует заданные регистры по одному, выводит None если регистра не существует
-        exemp_1 = MBScraper()
+        hr = MBScraper(begin_sp=0, regs_sp=1, slaves_arr=[16])
         for j in range(1):
-            MBScraper.read_holding_regs(exemp_1, [16], 16, 0)
+            MBScraper.read_holding_regs(hr)
             # MBScraper.read_input_regs(exemp_1, [16], 11, 0)
             # MBScraper.read_discrete_inputs(exemp_1, [16], 23, 0)
             # MBScraper.read_coil_regs(exemp_1, [16], 5, 0)
