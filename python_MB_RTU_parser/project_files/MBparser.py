@@ -1,4 +1,5 @@
 """
+Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит None если регистра не существует
 
 !!!Не сделано ООП, не проверено!!!
@@ -20,13 +21,12 @@ scan = True
 # timeoutSp = 0.1  # 0.018 + regsSp*0
 # print("timeout: %s [s]" % timeoutSp)
 
-
 class MBScraper(ModbusSerialClient):
     count_obj = 0
     client = ModbusSerialClient(Settings_MB.setting_RTU)
-    slaves_arr = Settings_MB.slaves_arr      # default value
-    regs_sp = Settings_MB.regs_sp            # default value
-    begin_sp = Settings_MB.begin_sp          # default value
+    slaves_arr = Settings_MB.slaves_arr  # default value
+    regs_sp = Settings_MB.regs_sp  # default value
+    begin_sp = Settings_MB.begin_sp  # default value
 
     def __init__(self, slaves_arr, regs_sp, begin_sp):
         MBScraper.count_obj += 1
