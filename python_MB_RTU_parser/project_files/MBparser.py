@@ -128,6 +128,44 @@ class MBScraper(client_RTU):
             self.tb = traceback.format_exc()
             return "None"
 
+    def read_discrete_inputs_regs(self, i, slave_id):
+        # errCnt = 0
+        # startTs = time.time()
+        #
+        # data_read = []
+
+
+            try:
+                data = MBScraper.client.read_discrete_inputs(i, 1, unit=slave_id)
+                data_read.append(data.bits)
+            except AttributeError:
+                # errCnt += 1
+                self.tb = traceback.format_exc()
+                data_read.append(str("None"))
+
+        # stopTs = time.time()
+        # timeDiff = stopTs - startTs
+        # fact_reg = len(data_read) - errCnt
+
+        data_byte_to_bit = []
+
+        for k in range(len(data_read)):
+            el = data_read[k]
+            if el == str('None'):
+                data_byte_to_bit.append("None")
+            elif 8 == len(el):
+                data_byte_to_bit.append([el[0]])
+
+        # print("Запрошено", len(data_read),
+        #       "регистров по одному(size 1 BIT) за каждый запрос \n",
+        #       "Считано c устройства", slaveId, "DISCRETE INPUT регистров", fact_reg, "\n", data_byte_to_bit, "\n",
+        #       "за %.3f sec" % timeDiff)
+        #
+        # if errCnt > 0:
+        #     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
+
+
+
     # def read_input_regs(self,
     #                     slavesArr,
     #                     regsSp,
@@ -166,52 +204,52 @@ class MBScraper(client_RTU):
     #     # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
     #     # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
 
-    def read_discrete_inputs_regs(self,
-                                  slavesArr,
-                                  regsSp,
-                                  beginSp
-                                  ):
-        errCnt = 0
-        startTs = time.time()
 
-        data_read = []
 
-        for slaveId in slavesArr:
 
-            for p in range(beginSp, regsSp):
+    # def read_discrete_inputs_regs(self,
+    #                               slavesArr,
+    #                               regsSp,
+    #                               beginSp
+    #                               ):
+    #     errCnt = 0
+    #     startTs = time.time()
+    #
+    #     data_read = []
+    #
+    #     for slaveId in slavesArr:
+    #
+    #         for p in range(beginSp, regsSp):
+    #
+    #             try:
+    #                 data = MBScraper.client.read_discrete_inputs(p, 1, unit=slaveId)
+    #                 data_read.append(data.bits)
+    #             except AttributeError:
+    #                 errCnt += 1
+    #                 tb = traceback.format_exc()
+    #                 data_read.append(str("None"))
+    #
+    #     stopTs = time.time()
+    #     timeDiff = stopTs - startTs
+    #     fact_reg = len(data_read) - errCnt
+    #
+    #     data_byte_to_bit = []
+    #
+    #     for k in range(len(data_read)):
+    #         el = data_read[k]
+    #         if el == str('None'):
+    #             data_byte_to_bit.append("None")
+    #         elif 8 == len(el):
+    #             data_byte_to_bit.append([el[0]])
+    #
+    #     print("Запрошено", len(data_read),
+    #           "регистров по одному(size 1 BIT) за каждый запрос \n",
+    #           "Считано c устройства", slaveId, "DISCRETE INPUT регистров", fact_reg, "\n", data_byte_to_bit, "\n",
+    #           "за %.3f sec" % timeDiff)
+    #
+    #     if errCnt > 0:
+    #         print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
 
-                try:
-                    data = MBScraper.client.read_discrete_inputs(p, 1, unit=slaveId)
-                    data_read.append(data.bits)
-                except AttributeError:
-                    errCnt += 1
-                    tb = traceback.format_exc()
-                    data_read.append(str("None"))
-
-        stopTs = time.time()
-        timeDiff = stopTs - startTs
-        fact_reg = len(data_read) - errCnt
-
-        data_byte_to_bit = []
-
-        for k in range(len(data_read)):
-            el = data_read[k]
-            if el == str('None'):
-                data_byte_to_bit.append("None")
-            elif 8 == len(el):
-                data_byte_to_bit.append([el[0]])
-
-        print("Запрошено", len(data_read),
-              "регистров по одному(size 1 BIT) за каждый запрос \n",
-              "Считано c устройства", slaveId, "DISCRET INPUT регистров", fact_reg, "\n", data_byte_to_bit, "\n",
-              "за %.3f sec" % timeDiff)
-
-        if errCnt > 0:
-            print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
-
-        # print("\r", data, data.registers, end="")
-        # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
-        # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
 
     def read_coil_regs(self,
                        slavesArr,
