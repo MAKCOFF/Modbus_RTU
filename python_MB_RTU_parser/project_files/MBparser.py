@@ -2,7 +2,7 @@
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит None если регистра не существует
 
-!!!Не сделано ООП, не проверено!!!
+!!!ООП не проверено!!!
 """
 import time
 import traceback
@@ -11,12 +11,11 @@ from MB_while import read_holding_regs_while
 import Settings_MB
 
 mode = 1
-scan = True
 
 
 # portNbr = "COM4"
 # portName = 'com4'
-# baudrate = 9600  # 153600
+# baud_rate = 9600  # 153600
 # parity_E = "E"
 # timeoutSp = 0.1  # 0.018 + regsSp*0
 # print("timeout: %s [s]" % timeoutSp)
@@ -39,9 +38,10 @@ class MBScraper(client_RTU):
     slaves_arr = Settings_MB.slaves_arr  # default value
     regs_sp = Settings_MB.regs_sp  # default value
     begin_sp = Settings_MB.begin_sp  # default value
-    mode_read_registers = None
 
-    def __init__(self, slaves_arr, regs_sp, begin_sp, mode_read_registers):
+    # mode_read_registers = None
+
+    def __init__(self, slaves_arr, regs_sp, begin_sp, mode_read_registers=1):
 
         MBScraper.count_obj += 1
         print(f"Created obj of MBScraper - {self.count_obj}")
@@ -68,9 +68,9 @@ class MBScraper(client_RTU):
         err_cnt = 0
         start_ts = time.time()
         for slave_id in self.slaves_arr:
+            self.slave_id_ = slave_id
+            self.data_result.append(self.slave_id_)
             for i in range(self.begin_sp, self.regs_sp):
-                self.slave_id_ = slave_id
-                self.data_result.append(self.slave_id_)
                 if self.mode_read_registers == 1:
                     self.obj_func = MBScraper.read_holding_regs(self, i, slave_id)
                     if self.obj_func == "None":
@@ -81,8 +81,16 @@ class MBScraper(client_RTU):
                     if self.obj_func == "None":
                         err_cnt += 1
                     self.data_result.append(self.obj_func)
-                else:
-                    pass
+                elif self.mode_read_registers == 3:
+                    self.obj_func = MBScraper.read_discrete_inputs_regs(self, i, slave_id)
+                    if self.obj_func == "None":
+                        err_cnt += 1
+                    self.data_result.append(self.obj_func)
+                elif self.mode_read_registers == 4:
+                    self.obj_func = MBScraper.read_coil_regs(self, i, slave_id)
+                    if self.obj_func == "None":
+                        err_cnt += 1
+                    self.data_result.append(self.obj_func)
         stop_ts = time.time()
         time_diff = stop_ts - start_ts
         fact_reg = len(self.data_result) - err_cnt
@@ -107,15 +115,29 @@ class MBScraper(client_RTU):
                   "за %.3f sec" % time_diff)
             if err_cnt > 0:
                 print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
+        elif self.mode_read_registers == 3:
+            print("Запрошено", len(self.data_result),
+                  "регистров по одному(size 1 BIT) за каждый запрос \n",
+                  "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", fact_reg, "\n", self.data_result,
+                  "\n",
+                  "за %.3f sec" % time_diff)
+            if err_cnt > 0:
+                print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
+        elif self.mode_read_registers == 4:
+            print("Запрошено", len(self.data_result),
+                  "регистров по одному(size 1 BIT) за каждый запрос \n",
+                  "Считано c устройства", self.slave_id_, "COIL регистров", fact_reg, "\n", self.data_result,
+                  "\n",
+                  "за %.3f sec" % time_diff)
+            if err_cnt > 0:
+                print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
 
     def read_holding_regs(self, i, slave_id):
-
         try:
             data = MBScraper.client.read_holding_registers(i, 1, unit=slave_id)
             assert (not data.isError())  # test that we are not an error
             return data.registers
         except AttributeError:
-            # err_cnt += 1
             self.tb = traceback.format_exc()
             return "None"
 
@@ -129,42 +151,21 @@ class MBScraper(client_RTU):
             return "None"
 
     def read_discrete_inputs_regs(self, i, slave_id):
-        # errCnt = 0
-        # startTs = time.time()
-        #
-        # data_read = []
-
-
-            try:
-                data = MBScraper.client.read_discrete_inputs(i, 1, unit=slave_id)
-                data_read.append(data.bits)
-            except AttributeError:
-                # errCnt += 1
-                self.tb = traceback.format_exc()
-                data_read.append(str("None"))
-
-        # stopTs = time.time()
-        # timeDiff = stopTs - startTs
-        # fact_reg = len(data_read) - errCnt
-
-        data_byte_to_bit = []
-
-        for k in range(len(data_read)):
-            el = data_read[k]
-            if el == str('None'):
-                data_byte_to_bit.append("None")
-            elif 8 == len(el):
-                data_byte_to_bit.append([el[0]])
-
-        # print("Запрошено", len(data_read),
-        #       "регистров по одному(size 1 BIT) за каждый запрос \n",
-        #       "Считано c устройства", slaveId, "DISCRETE INPUT регистров", fact_reg, "\n", data_byte_to_bit, "\n",
-        #       "за %.3f sec" % timeDiff)
-        #
-        # if errCnt > 0:
-        #     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
-
-
+        data_read = []
+        try:
+            data = MBScraper.client.read_discrete_inputs(i, 1, unit=slave_id)
+            data_read.append(data.bits)
+            data_byte_to_bit = data_read[0]
+            # for k in range(len(data_read)):
+            #     el = data_read[k]
+            #     if 8 == len(el):
+            #         data_byte_to_bit = ([el[0]])
+            #     else:
+            #         return "Read error"
+            return data_byte_to_bit
+        except AttributeError:
+            self.tb = traceback.format_exc()
+            return "None"
 
     # def read_input_regs(self,
     #                     slavesArr,
@@ -203,9 +204,6 @@ class MBScraper(client_RTU):
     #     # print("\r", data, data.registers, end="")
     #     # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
     #     # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
-
-
-
 
     # def read_discrete_inputs_regs(self,
     #                               slavesArr,
@@ -250,68 +248,70 @@ class MBScraper(client_RTU):
     #     if errCnt > 0:
     #         print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
 
-
-    def read_coil_regs(self,
-                       slavesArr,
-                       regsSp,
-                       beginSp
-                       ):
-        errCnt = 0
-        startTs = time.time()
-
+    def read_coil_regs(self, i, slave_id):
         data_read = []
+        try:
+            data = MBScraper.client.read_coils(i, 1, unit=slave_id)
+            data_read.append(data.bits)
+            data_byte_to_bit = data_read[0]
+            return data_byte_to_bit
+        except AttributeError:
+            self.tb = traceback.format_exc()
+            return "None"
+        #                slavesArr,
+        #                regsSp,
+        #                beginSp
+        #                ):
+        # errCnt = 0
+        # startTs = time.time()
+        #
+        # data_read = []
+        #
+        # for slaveId in slavesArr:
+        #
+        #     for p in range(beginSp, regsSp):
+        #
+        #         try:
+        #             data = MBScraper.client.read_coils(p, 1, unit=slaveId)
+        #             data_read.append(data.bits)
+        #         except AttributeError:
+        #             errCnt += 1
+        #             tb = traceback.format_exc()
+        #             data_read.append(str("None"))
+        #
+        # stopTs = time.time()
+        # timeDiff = stopTs - startTs
+        # fact_reg = len(data_read) - errCnt
+        #
+        # data_byte_to_bit = []
+        #
+        # for l in range(len(data_read)):
+        #     el = data_read[l]
+        #     if el == str("None"):
+        #         data_byte_to_bit.append("None")
+        #     elif 8 == len(el):
+        #         data_byte_to_bit.append([el[0]])
 
-        for slaveId in slavesArr:
-
-            for p in range(beginSp, regsSp):
-
-                try:
-                    data = MBScraper.client.read_coils(p, 1, unit=slaveId)
-                    data_read.append(data.bits)
-                except AttributeError:
-                    errCnt += 1
-                    tb = traceback.format_exc()
-                    data_read.append(str("None"))
-
-        stopTs = time.time()
-        timeDiff = stopTs - startTs
-        fact_reg = len(data_read) - errCnt
-
-        data_byte_to_bit = []
-
-        for l in range(len(data_read)):
-            el = data_read[l]
-            if el == str("None"):
-                data_byte_to_bit.append("None")
-            elif 8 == len(el):
-                data_byte_to_bit.append([el[0]])
-
-        print("Запрошено", len(data_read),
-              "регистров по одному(size 1 BIT) за каждый запрос \n",
-              "Считано c устройства", slaveId, "COIL регистров", fact_reg, "\n", data_byte_to_bit, "\n",
-              "за %.3f sec" % timeDiff)
-
-        if errCnt > 0:
-            print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
-
-        # print("\r", data, data.registers, end="")
-        # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
-        # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
+        # print("Запрошено", len(data_read),
+        #       "регистров по одному(size 1 BIT) за каждый запрос \n",
+        #       "Считано c устройства", slaveId, "COIL регистров", fact_reg, "\n", data_byte_to_bit, "\n",
+        #       "за %.3f sec" % timeDiff)
+        #
+        # if errCnt > 0:
+        #     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
 
 
-# Селектор режимов
 if __name__ == '__main__':
-
+    # Селектор режимов
     if mode == 1:
         # Сканирует заданные регистры по одному, выводит None если регистра не существует
         hr = MBScraper(begin_sp=0, regs_sp=1, slaves_arr=[16], mode_read_registers=1)
         ir = MBScraper(begin_sp=0, regs_sp=1, slaves_arr=[16], mode_read_registers=2)
-
-
+        dr = MBScraper(begin_sp=0, regs_sp=1, slaves_arr=[16], mode_read_registers=3)
+        cr = MBScraper(begin_sp=0, regs_sp=1, slaves_arr=[16], mode_read_registers=4)
     elif mode == 2:
-
+        # Непрерывное чтение
         read_holding_regs_while([16], 16, 0)
-
     # elif mode == 3:
     #
     #
