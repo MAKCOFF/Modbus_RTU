@@ -39,7 +39,7 @@ log.setLevel(logging.DEBUG)
 UNIT = 0x10
 setting_RTU = {
     "method": 'rtu',
-    "port": 'COM4',
+    "port": 'COM5',
     "baudrate": 9600,
     "timeout": 0.1,
     "stopbits": 1,
@@ -85,7 +85,11 @@ def run_sync_client():
     # client = ModbusClient('localhost', port=5020, framer=ModbusRtuFramer)
     # client = ModbusClient(method='binary', port='/dev/ptyp0', timeout=1)
     # client = ModbusClient(method='ascii', port='/dev/ptyp0', timeout=1)
-    client = ModbusClient(setting_RTU)
+    client = ModbusClient(method= 'rtu',
+    port= 'COM5',
+    baudrate= 9600,
+    timeout= 0.1,
+    stopbits= 1, parity="N")
     client.connect()
 
     # ------------------------------------------------------------------------#
