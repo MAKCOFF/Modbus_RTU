@@ -3,6 +3,7 @@ Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит None если регистра не существует
 
 !!!ООП не проверено!!!
+!!! Добавить вместо try hasattr в функции!!!
 """
 import time
 import traceback
@@ -62,8 +63,8 @@ class MBScraper(client_RTU):
 
     def init_read_registers(self):
 
-        if self.mode_read_registers != 1 or 2:
-            return None
+        if self.mode_read_registers < 1 or self.mode_read_registers > 4:
+            return None, print("Error mode")
 
         err_cnt = 0
         start_ts = time.time()
@@ -133,20 +134,20 @@ class MBScraper(client_RTU):
                 print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
 
     def read_holding_regs(self, i, slave_id):
-        try:
-            data = MBScraper.client.read_holding_registers(i, 1, unit=slave_id)
-            assert (not data.isError())  # test that we are not an error
+        data = MBScraper.client.read_holding_registers(i, 1, unit=slave_id)
+        assert (not data.isError())  # test that we are not an error
+        if hasattr(data, "registers"):
             return data.registers
-        except AttributeError:
+        else:
             self.tb = traceback.format_exc()
             return "None"
 
     def read_input_regs(self, i, slave_id):
-        try:
-            data = MBScraper.client.read_holding_registers(i, 1, unit=slave_id)
-            assert (not data.isError())  # test that we are not an error
+        data = MBScraper.client.read_input_registers(i, 1, unit=slave_id)
+        assert (not data.isError())  # test that we are not an error
+        if hasattr(data, "registers"):
             return data.registers
-        except AttributeError:
+        else:
             self.tb = traceback.format_exc()
             return "None"
 
