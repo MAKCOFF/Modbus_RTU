@@ -167,7 +167,6 @@ class MBScraper(client_RTU):
         else:
             self.tb = traceback.format_exc()
             return "None"
-
     # def read_input_regs(self,
     #                     slavesArr,
     #                     regsSp,
@@ -248,7 +247,6 @@ class MBScraper(client_RTU):
     #
     #     if errCnt > 0:
     #         print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
-
     def read_coil_regs(self, i, slave_id):
         data_read = []
         data = MBScraper.client.read_coils(i, 1, unit=slave_id)
@@ -259,7 +257,6 @@ class MBScraper(client_RTU):
         else:
             self.tb = traceback.format_exc()
             return "None"
-
         #                slavesArr,
         #                regsSp,
         #                beginSp
