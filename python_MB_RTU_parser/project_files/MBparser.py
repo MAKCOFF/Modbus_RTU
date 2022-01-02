@@ -153,18 +153,18 @@ class MBScraper(client_RTU):
 
     def read_discrete_inputs_regs(self, i, slave_id):
         data_read = []
-        try:
-            data = MBScraper.client.read_discrete_inputs(i, 1, unit=slave_id)
+        data = MBScraper.client.read_discrete_inputs(i, 1, unit=slave_id)
+        if hasattr(data, "bits"):
             data_read.append(data.bits)
             data_byte_to_bit = data_read[0]
-            # for k in range(len(data_read)):
-            #     el = data_read[k]
-            #     if 8 == len(el):
-            #         data_byte_to_bit = ([el[0]])
-            #     else:
-            #         return "Read error"
+        # for k in range(len(data_read)):
+        #     el = data_read[k]
+        #     if 8 == len(el):
+        #         data_byte_to_bit = ([el[0]])
+        #     else:
+        #         return "Read error"
             return data_byte_to_bit
-        except AttributeError:
+        else:
             self.tb = traceback.format_exc()
             return "None"
 
@@ -251,14 +251,15 @@ class MBScraper(client_RTU):
 
     def read_coil_regs(self, i, slave_id):
         data_read = []
-        try:
-            data = MBScraper.client.read_coils(i, 1, unit=slave_id)
+        data = MBScraper.client.read_coils(i, 1, unit=slave_id)
+        if hasattr(data, "bits"):
             data_read.append(data.bits)
             data_byte_to_bit = data_read[0]
             return data_byte_to_bit
-        except AttributeError:
+        else:
             self.tb = traceback.format_exc()
             return "None"
+
         #                slavesArr,
         #                regsSp,
         #                beginSp
