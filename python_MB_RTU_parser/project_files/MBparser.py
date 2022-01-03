@@ -40,7 +40,7 @@ class MBScraper(client_RTU):
     def __init__(self, slaves_arr, regs_sp, begin_sp, mode_read_registers=1):
 
         MBScraper.count_obj += 1
-        print(f"Created obj of MBScraper : {self.count_obj}")
+        # print(f"Created obj of MBScraper : {self.count_obj}")
         self.data_result = []
         self.slaves_arr = slaves_arr
         self.regs_sp = regs_sp
@@ -54,7 +54,8 @@ class MBScraper(client_RTU):
         super().__init__()
 
     def __del__(self):
-        pass
+        MBScraper.count_obj -= 1
+        print(f"Объект класса удален, осталось объектов: {self.count_obj}")
 
     def init_read_registers(self):
 
@@ -65,7 +66,7 @@ class MBScraper(client_RTU):
         start_ts = time.time()
         for slave_id in self.slaves_arr:
             self.slave_id_ = slave_id
-            self.data_result.insert(0, self.slave_id_)
+            self.data_result.insert(0, self.slave_id_)  # Вставляем в начало списка адрес слэйва int
             for i in range(self.regs_sp):
                 if self.mode_read_registers == 1:
                     self.obj_func = MBScraper.read_holding_regs(self, i + self.begin_sp, slave_id)
@@ -89,7 +90,7 @@ class MBScraper(client_RTU):
                     self.data_result.append(self.obj_func)
         stop_ts = time.time()
         time_diff = stop_ts - start_ts
-        fact_reg = len(self.data_result) - 1 - err_cnt
+        fact_reg = len(self.data_result) - 1 - err_cnt  # Отнимаем из списка индекс адреса слэйва -1
         MBScraper.printing_to_cons(self, fact_reg, time_diff, err_cnt)
 
         self.result = [self.data_result, fact_reg, time_diff, self.tb, err_cnt]
@@ -133,7 +134,7 @@ class MBScraper(client_RTU):
         assert (not data.isError())  # test that we are not an error
         if hasattr(data, "registers"):
             meta_data = data.registers
-            return "".join(map(str, meta_data))
+            return "".join(map(str, meta_data))  # Преобразуем из списка в строку
         else:
             self.tb = traceback.format_exc()
             return "None"
