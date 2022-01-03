@@ -55,7 +55,7 @@ class MBScraper(client_RTU):
 
     def __del__(self):
         MBScraper.count_obj_of_class -= 1
-        print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")
+        # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")
 
     def init_read_registers(self):
 
@@ -176,9 +176,13 @@ if __name__ == '__main__':
     if mode == 1:
         # Сканирует заданные регистры по одному, выводит None если регистра не существует
         hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).init_read_registers()
+        del hr
         ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).init_read_registers()
+        del ir
         dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).init_read_registers()
+        del dr
         cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).init_read_registers()
+        del cr
     elif mode == 2:
         # Непрерывное чтение
         read_holding_regs_while([16], 16, 0)
