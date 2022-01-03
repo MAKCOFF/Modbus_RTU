@@ -182,4 +182,5 @@ if __name__ == '__main__':
     elif mode == 2:
         # Непрерывное чтение
         read_holding_regs_while([16], 16, 0)
+
 MBScraper.client.close()
