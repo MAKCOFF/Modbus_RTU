@@ -31,12 +31,12 @@ class MBScraper(client_RTU):
                           3 DISCRETE   ЧТЕНИЕ
                           4 COIL       ЧТЕНИЕ
     """
-    client = client_RTU(method='rtu', port="COM1", baudrate=9600, timeout=0.1, parity="E", stopbits=1)
+    client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
     count_obj = 0
-    slaves_arr = Settings_MB.slaves_arr  # default value
-    regs_sp = Settings_MB.regs_sp  # default value
-    begin_sp = Settings_MB.begin_sp  # default value
+    slaves_arr = [16]  # default value
+    regs_sp = 1  # default value
+    begin_sp = 0  # default value
 
     def __init__(self, slaves_arr, regs_sp, begin_sp, mode_read_registers=1):
 
