@@ -68,26 +68,27 @@ class MBScraper(client_RTU):
             self.slave_id_ = slave_id
             self.data_result.insert(0, self.slave_id_)  # Вставляем в начало списка адрес слэйва int
             for i in range(self.regs_sp):
-                if self.mode_read_registers == 1:
-                    self.obj_func = MBScraper.read_holding_regs(self, i + self.begin_sp, slave_id)
-                    if self.obj_func == "None":
-                        err_cnt += 1
-                    self.data_result.append(self.obj_func)
-                elif self.mode_read_registers == 2:
-                    self.obj_func = MBScraper.read_input_regs(self, i, slave_id)
-                    if self.obj_func == "None":
-                        err_cnt += 1
-                    self.data_result.append(self.obj_func)
-                elif self.mode_read_registers == 3:
-                    self.obj_func = MBScraper.read_discrete_inputs_regs(self, i, slave_id)
-                    if self.obj_func == "None":
-                        err_cnt += 1
-                    self.data_result.append(self.obj_func)
-                elif self.mode_read_registers == 4:
-                    self.obj_func = MBScraper.read_coil_regs(self, i, slave_id)
-                    if self.obj_func == "None":
-                        err_cnt += 1
-                    self.data_result.append(self.obj_func)
+                match self.mode_read_registers:
+                    case 1:  # HOLDING    ЧТЕНИЕ
+                        self.obj_func = MBScraper.read_holding_regs(self, i + self.begin_sp, slave_id)
+                        if self.obj_func == "None":
+                            err_cnt += 1
+                        self.data_result.append(self.obj_func)
+                    case 2:  # INPUT      ЧТЕНИЕ
+                        self.obj_func = MBScraper.read_input_regs(self, i + self.begin_sp, slave_id)
+                        if self.obj_func == "None":
+                            err_cnt += 1
+                        self.data_result.append(self.obj_func)
+                    case 3:  # DISCRETE   ЧТЕНИЕ
+                        self.obj_func = MBScraper.read_discrete_inputs_regs(self, i + self.begin_sp, slave_id)
+                        if self.obj_func == "None":
+                            err_cnt += 1
+                        self.data_result.append(self.obj_func)
+                    case 4:  # COIL       ЧТЕНИЕ
+                        self.obj_func = MBScraper.read_coil_regs(self, i + self.begin_sp, slave_id)
+                        if self.obj_func == "None":
+                            err_cnt += 1
+                        self.data_result.append(self.obj_func)
         stop_ts = time.time()
         time_diff = stop_ts - start_ts
         fact_reg = len(self.data_result) - 1 - err_cnt  # Отнимаем из списка индекс адреса слэйва -1
@@ -98,36 +99,37 @@ class MBScraper(client_RTU):
 
     def printing_to_cons(self, fact_reg, time_diff, err_cnt):
 
-        if self.mode_read_registers == 1:
-            print("Запрошено", len(self.data_result) - 1,
-                  "регистров по одному(size 2 BYTE) за каждый запрос \n",
-                  "Считано c устройства", self.slave_id_, "HOLDING регистров", fact_reg, "\n", self.data_result, "\n",
-                  "за %.3f sec" % time_diff)
-            if err_cnt > 0:
-                print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
-        elif self.mode_read_registers == 2:
-            print("Запрошено", len(self.data_result) - 1,
-                  "регистров по одному(size 2 BYTE) за каждый запрос \n",
-                  "Считано c устройства", self.slave_id_, "INPUT регистров", fact_reg, "\n", self.data_result, "\n",
-                  "за %.3f sec" % time_diff)
-            if err_cnt > 0:
-                print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
-        elif self.mode_read_registers == 3:
-            print("Запрошено", len(self.data_result) - 1,
-                  "регистров по одному(size 1 BIT) за каждый запрос \n",
-                  "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", fact_reg, "\n", self.data_result,
-                  "\n",
-                  "за %.3f sec" % time_diff)
-            if err_cnt > 0:
-                print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
-        elif self.mode_read_registers == 4:
-            print("Запрошено", len(self.data_result) - 1,
-                  "регистров по одному(size 1 BIT) за каждый запрос \n",
-                  "Считано c устройства", self.slave_id_, "COIL регистров", fact_reg, "\n", self.data_result,
-                  "\n",
-                  "за %.3f sec" % time_diff)
-            if err_cnt > 0:
-                print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
+        match self.mode_read_registers:
+            case 1:
+                print("Запрошено", len(self.data_result) - 1,
+                      "регистров по одному(size 2 BYTE) за каждый запрос \n",
+                      "Считано c устройства", self.slave_id_, "HOLDING регистров", fact_reg, "\n", self.data_result, "\n",
+                      "за %.3f sec" % time_diff)
+                if err_cnt > 0:
+                    print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
+            case 2:
+                print("Запрошено", len(self.data_result) - 1,
+                      "регистров по одному(size 2 BYTE) за каждый запрос \n",
+                      "Считано c устройства", self.slave_id_, "INPUT регистров", fact_reg, "\n", self.data_result, "\n",
+                      "за %.3f sec" % time_diff)
+                if err_cnt > 0:
+                    print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
+            case 3:
+                print("Запрошено", len(self.data_result) - 1,
+                      "регистров по одному(size 1 BIT) за каждый запрос \n",
+                      "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", fact_reg, "\n", self.data_result,
+                      "\n",
+                      "за %.3f sec" % time_diff)
+                if err_cnt > 0:
+                    print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
+            case 4:
+                print("Запрошено", len(self.data_result) - 1,
+                      "регистров по одному(size 1 BIT) за каждый запрос \n",
+                      "Считано c устройства", self.slave_id_, "COIL регистров", fact_reg, "\n", self.data_result,
+                      "\n",
+                      "за %.3f sec" % time_diff)
+                if err_cnt > 0:
+                    print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
 
     def read_holding_regs(self, i, slave_id):
         data = MBScraper.client.read_holding_registers(i, 1, unit=slave_id)
@@ -173,18 +175,17 @@ class MBScraper(client_RTU):
 if __name__ == '__main__':
     # Селектор режимов
     mode = 1
-    if mode == 1:
-        # Сканирует заданные регистры по одному, выводит None если регистра не существует
-        hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).init_read_registers()
-        del hr
-        ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).init_read_registers()
-        del ir
-        dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).init_read_registers()
-        del dr
-        cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).init_read_registers()
-        del cr
-    elif mode == 2:
-        # Непрерывное чтение
-        read_holding_regs_while([16], 16, 0)
+    match mode:
+        case 1:  # Сканирует заданные регистры по одному, выводит None если регистра не существует
+            hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).init_read_registers()
+            del hr
+            ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).init_read_registers()
+            del ir
+            dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).init_read_registers()
+            del dr
+            cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).init_read_registers()
+            del cr
+        case 2:  # Непрерывное чтение
+            read_holding_regs_while([16], 16, 0)
 
 MBScraper.client.close()
