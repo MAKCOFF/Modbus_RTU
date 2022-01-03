@@ -32,14 +32,14 @@ class MBScraper(client_RTU):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    count_obj = 0
+    count_obj_of_class = 0
     slaves_arr = [16]  # default value
     regs_sp = 1  # default value
     begin_sp = 0  # default value
 
     def __init__(self, slaves_arr, regs_sp, begin_sp, mode_read_registers=1):
 
-        MBScraper.count_obj += 1
+        MBScraper.count_obj_of_class += 1
         # print(f"Created obj of MBScraper : {self.count_obj}")
         self.data_result = []
         self.slaves_arr = slaves_arr
@@ -54,8 +54,8 @@ class MBScraper(client_RTU):
         super().__init__()
 
     def __del__(self):
-        MBScraper.count_obj -= 1
-        print(f"Объект класса удален, осталось объектов: {self.count_obj}")
+        MBScraper.count_obj_of_class -= 1
+        print(f"Объект класса удален, в памяти осталось объектов: {self.count_obj_of_class}")
 
     def init_read_registers(self):
 
