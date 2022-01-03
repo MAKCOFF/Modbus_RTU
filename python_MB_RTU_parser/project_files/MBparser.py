@@ -2,6 +2,15 @@
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит None если регистра не существует
 
+!!!НЕ сделано!!!
+TODO
+ else:
+    #     print("Выберите режим сканирования\n"
+    #           "1. Режим парсинга регистров\n"
+    #           "2. Режим Непреывного вывода в консоль значений\n"
+    #           "3. Режим записи в регистры: \n"
+    #           "3.1 циклической\n"
+    #           "3.2 разовой\n")
 """
 import time
 import traceback
@@ -9,15 +18,6 @@ from pymodbus.client.sync import ModbusSerialClient as client_RTU
 from MB_while import read_holding_regs_while
 import Settings_MB
 
-mode = 1
-
-
-# portNbr = "COM4"
-# portName = 'com4'
-# baud_rate = 9600  # 153600
-# parity_E = "E"
-# timeoutSp = 0.1  # 0.018 + regsSp*0
-# print("timeout: %s [s]" % timeoutSp)
 
 class MBScraper(client_RTU):
     """
@@ -172,6 +172,7 @@ class MBScraper(client_RTU):
 
 if __name__ == '__main__':
     # Селектор режимов
+    mode = 1
     if mode == 1:
         # Сканирует заданные регистры по одному, выводит None если регистра не существует
         hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).init_read_registers()
@@ -181,14 +182,4 @@ if __name__ == '__main__':
     elif mode == 2:
         # Непрерывное чтение
         read_holding_regs_while([16], 16, 0)
-    # elif mode == 3:
-    #
-    #
-    # else:
-    #     print("Выберите режим сканирования\n"
-    #           "1. Режим парсинга регистров\n"
-    #           "2. Режим Непреывного вывода в консоль значений\n"
-    #           "3. Режим записи в регистры: \n"
-    #           "3.1 циклической\n"
-    #           "3.2 разовой\n")
 MBScraper.client.close()
