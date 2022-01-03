@@ -55,7 +55,7 @@ class MBScraper(client_RTU):
 
     def __del__(self):
         MBScraper.count_obj_of_class -= 1
-        print(f"Объект класса удален, в памяти осталось объектов: {self.count_obj_of_class}")
+        print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")
 
     def init_read_registers(self):
 
