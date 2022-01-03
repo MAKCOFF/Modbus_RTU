@@ -103,7 +103,8 @@ class MBScraper(client_RTU):
             case 1:
                 print("Запрошено", len(self.data_result) - 1,
                       "регистров по одному(size 2 BYTE) за каждый запрос \n",
-                      "Считано c устройства", self.slave_id_, "HOLDING регистров", fact_reg, "\n", self.data_result, "\n",
+                      "Считано c устройства", self.slave_id_, "HOLDING регистров", fact_reg, "\n",
+                      self.data_result, "\n",
                       "за %.3f sec" % time_diff)
                 if err_cnt > 0:
                     print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
@@ -117,8 +118,8 @@ class MBScraper(client_RTU):
             case 3:
                 print("Запрошено", len(self.data_result) - 1,
                       "регистров по одному(size 1 BIT) за каждый запрос \n",
-                      "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", fact_reg, "\n", self.data_result,
-                      "\n",
+                      "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", fact_reg, "\n",
+                      self.data_result, "\n",
                       "за %.3f sec" % time_diff)
                 if err_cnt > 0:
                     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
