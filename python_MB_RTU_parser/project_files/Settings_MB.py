@@ -1,4 +1,4 @@
-method = 'rtu'
+method: str = 'rtu'
 setting_RTU = {    
     "port": 'COM1',
     "baudrate": 9600,
