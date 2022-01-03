@@ -69,9 +69,9 @@ class MBScraper(client_RTU):
         for slave_id in self.slaves_arr:
             self.slave_id_ = slave_id
             self.data_result.insert(0, self.slave_id_)
-            for i in range(self.begin_sp, self.regs_sp):
+            for i in range(self.regs_sp):
                 if self.mode_read_registers == 1:
-                    self.obj_func = MBScraper.read_holding_regs(self, i, slave_id)
+                    self.obj_func = MBScraper.read_holding_regs(self, i + self.begin_sp, slave_id)
                     if self.obj_func == "None":
                         err_cnt += 1
                     self.data_result.append(self.obj_func)
@@ -176,10 +176,10 @@ if __name__ == '__main__':
     # Селектор режимов
     if mode == 1:
         # Сканирует заданные регистры по одному, выводит None если регистра не существует
-        # hr = MBScraper(begin_sp=19, regs_sp=30, slaves_arr=[16], mode_read_registers=1).init_read_registers()
-        # ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).init_read_registers()
-        # dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).init_read_registers()
-        cr = MBScraper(begin_sp=0, regs_sp=1, slaves_arr=[16], mode_read_registers=4).init_read_registers()
+        hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).init_read_registers()
+        ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).init_read_registers()
+        dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).init_read_registers()
+        cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).init_read_registers()
     elif mode == 2:
         # Непрерывное чтение
         read_holding_regs_while([16], 16, 0)
