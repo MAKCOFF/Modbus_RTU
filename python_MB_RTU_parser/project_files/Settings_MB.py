@@ -1,6 +1,6 @@
 setting_RTU = {
     "method": 'rtu',
-    "port": 'COM4',
+    "port": 'COM1',
     "baudrate": 9600,
     "timeout": 0.1,
     "stopbits": 1,

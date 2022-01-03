@@ -2,10 +2,10 @@ import traceback
 from pymodbus.client.sync import ModbusSerialClient as pyRtu
 from time import sleep
 
-portNbr = "COM5"
-portName = 'com5'
+portNbr = "COM1"
+portName = 'com1'
 baudrate = 9600  # 153600
-parity_E = "N"
+parity_E = "E"
 timeoutSp = 0.1
 
 pymc = pyRtu(method='rtu', port=portNbr, baudrate=baudrate, timeout=timeoutSp, parity=parity_E, stopbits=1)
@@ -101,4 +101,4 @@ def read_coil_regs_while(
 
 
 if __name__ == '__main__':
-    pass
+    read_holding_regs_while([16], 2, 25)
