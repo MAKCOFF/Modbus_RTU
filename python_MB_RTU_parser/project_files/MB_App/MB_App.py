@@ -32,14 +32,14 @@ class MBScraper(client_RTU):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    count_obj_of_class = 0
+    # count_obj_of_class = 0
     slaves_arr = [16]  # default value
     regs_sp = 1  # default value
     begin_sp = 0  # default value
 
     def __init__(self, slaves_arr, regs_sp, begin_sp, mode_read_registers=1):
 
-        MBScraper.count_obj_of_class += 1
+        # MBScraper.count_obj_of_class += 1
         # print(f"Created obj of MBScraper : {self.count_obj}")
         self.data_result = []
         self.slaves_arr = slaves_arr
@@ -54,7 +54,8 @@ class MBScraper(client_RTU):
         super().__init__()
 
     def __del__(self):
-        MBScraper.count_obj_of_class -= 1
+        pass
+        # MBScraper.count_obj_of_class -= 1
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")
 
     def init_read_registers(self):
@@ -91,7 +92,7 @@ class MBScraper(client_RTU):
                         self.data_result.append(self.obj_func)
         stop_ts = time.time()
         time_diff = stop_ts - start_ts
-        fact_reg = len(self.data_result) - 1 - err_cnt  # Отнимаем из списка индекс адреса слэйва -1
+        fact_reg = len(self.data_result) - 1 - err_cnt  # Отнимаем от длины списка индекс адреса слэйва -1
         MBScraper.printing_to_cons(self, fact_reg, time_diff, err_cnt)
 
         self.result = [self.data_result, fact_reg, time_diff, self.tb, err_cnt]
@@ -133,7 +134,7 @@ class MBScraper(client_RTU):
                     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
 
     def read_holding_regs(self, i, slave_id):
-        data = MBScraper.client.read_holding_registers(i, 1, unit=slave_id)
+        data = self.client.read_holding_registers(i, 1, unit=slave_id)
         assert (not data.isError())  # test that we are not an error
         if hasattr(data, "registers"):
             meta_data = data.registers
@@ -143,7 +144,7 @@ class MBScraper(client_RTU):
             return "None"
 
     def read_input_regs(self, i, slave_id):
-        data = MBScraper.client.read_input_registers(i, 1, unit=slave_id)
+        data = self.client.read_input_registers(i, 1, unit=slave_id)
         assert (not data.isError())  # test that we are not an error
         if hasattr(data, "registers"):
             meta_data = data.registers
@@ -154,7 +155,7 @@ class MBScraper(client_RTU):
 
     def read_discrete_inputs_regs(self, i, slave_id):
         data_read = []
-        data = MBScraper.client.read_discrete_inputs(i, 1, unit=slave_id)
+        data = self.client.read_discrete_inputs(i, 1, unit=slave_id)
         if hasattr(data, "bits"):
             data_read.append(data.bits[0])
             return "".join(map(str, data_read))
@@ -164,7 +165,7 @@ class MBScraper(client_RTU):
 
     def read_coil_regs(self, i, slave_id):
         data_read = []
-        data = MBScraper.client.read_coils(i, 1, unit=slave_id)
+        data = self.client.read_coils(i, 1, unit=slave_id)
         if hasattr(data, "bits"):
             data_read.append(data.bits[0])
             return "".join(map(str, data_read))
