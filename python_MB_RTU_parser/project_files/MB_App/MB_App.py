@@ -59,23 +59,23 @@ class MBScraper(client_RTU):
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")
 
     @staticmethod
-    def _time_of_function(function):
+    def time_of_function(function):
         def wrapped(*args):
-            start_time = time.perf_counter_ns()
+            start_time = time.perf_counter()
             res = function(*args)
-            print(time.perf_counter_ns() - start_time)
+            time_diff = (time.perf_counter() - start_time)
+            print("за %.3f sec" % time_diff)
             return res
 
         return wrapped
 
-    @_time_of_function
+    @time_of_function
     def read(self):
 
         if self.mode_read_registers < 1 or self.mode_read_registers > 4:
             return None, print("Error mode")
 
         err_cnt = 0
-        start_ts = time.time()
         for slave_id in self.slaves_arr:
             self.slave_id_ = slave_id
             self.data_result.insert(0, self.slave_id_)  # Вставляем в начало списка адрес слэйва int
@@ -101,46 +101,39 @@ class MBScraper(client_RTU):
                         if self.obj_func == "None":
                             err_cnt += 1
                         self.data_result.append(self.obj_func)
-        stop_ts = time.time()
-        time_diff = stop_ts - start_ts
         fact_reg = len(self.data_result) - 1 - err_cnt  # Отнимаем от длины списка индекс адреса слэйва -1
-        MBScraper.printing_to_cons(self, fact_reg, time_diff, err_cnt)
+        MBScraper.printing_to_cons(self, fact_reg, err_cnt)
 
-        self.result = [self.data_result, fact_reg, time_diff, self.tb, err_cnt]
+        self.result = [self.data_result, fact_reg, self.tb, err_cnt]
         return self.result
 
-    def printing_to_cons(self, fact_reg, time_diff, err_cnt):
+    def printing_to_cons(self, fact_reg, err_cnt):
 
         match self.mode_read_registers:
             case 1:
                 print("Запрошено", len(self.data_result) - 1,
                       "регистров по одному(size 2 BYTE) за каждый запрос \n",
                       "Считано c устройства", self.slave_id_, "HOLDING регистров", fact_reg, "\n",
-                      self.data_result, "\n",
-                      "за %.3f sec" % time_diff)
+                      self.data_result)
                 if err_cnt > 0:
                     print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
             case 2:
                 print("Запрошено", len(self.data_result) - 1,
                       "регистров по одному(size 2 BYTE) за каждый запрос \n",
-                      "Считано c устройства", self.slave_id_, "INPUT регистров", fact_reg, "\n", self.data_result, "\n",
-                      "за %.3f sec" % time_diff)
+                      "Считано c устройства", self.slave_id_, "INPUT регистров", fact_reg, "\n", self.data_result)
                 if err_cnt > 0:
                     print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (err_cnt, self.tb))
             case 3:
                 print("Запрошено", len(self.data_result) - 1,
                       "регистров по одному(size 1 BIT) за каждый запрос \n",
                       "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", fact_reg, "\n",
-                      self.data_result, "\n",
-                      "за %.3f sec" % time_diff)
+                      self.data_result)
                 if err_cnt > 0:
                     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
             case 4:
                 print("Запрошено", len(self.data_result) - 1,
                       "регистров по одному(size 1 BIT) за каждый запрос \n",
-                      "Считано c устройства", self.slave_id_, "COIL регистров", fact_reg, "\n", self.data_result,
-                      "\n",
-                      "за %.3f sec" % time_diff)
+                      "Считано c устройства", self.slave_id_, "COIL регистров", fact_reg, "\n", self.data_result)
                 if err_cnt > 0:
                     print("   !pymodbus:\terrCnt: %s; last tb: %s" % (err_cnt, self.tb))
 
