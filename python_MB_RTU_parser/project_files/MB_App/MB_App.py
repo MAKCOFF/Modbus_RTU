@@ -58,7 +58,18 @@ class MBScraper(client_RTU):
         # MBScraper.count_obj_of_class -= 1
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")
 
-    def init_read_registers(self):
+    @staticmethod
+    def _time_of_function(function):
+        def wrapped(*args):
+            start_time = time.perf_counter_ns()
+            res = function(*args)
+            print(time.perf_counter_ns() - start_time)
+            return res
+
+        return wrapped
+
+    @_time_of_function
+    def read(self):
 
         if self.mode_read_registers < 1 or self.mode_read_registers > 4:
             return None, print("Error mode")
@@ -179,14 +190,10 @@ if __name__ == '__main__':
     mode = 1
     match mode:
         case 1:  # Сканирует заданные регистры по одному, выводит None если регистра не существует
-            hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).init_read_registers()
-            del hr
-            ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).init_read_registers()
-            del ir
-            dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).init_read_registers()
-            del dr
-            cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).init_read_registers()
-            del cr
+            hr = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=1).read()
+            ir = MBScraper(begin_sp=0, regs_sp=20, slaves_arr=[16], mode_read_registers=2).read()
+            dr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=3).read()
+            cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).read()
         case 2:  # Непрерывное чтение
             pass
             # read_holding_regs_while([16], 16, 0)
