@@ -4,17 +4,17 @@ MODE 1. Сканирует заданные регистры по одному, 
 
 !!!НЕ сделано!!!
 TODO:
-   - "Выберите режим сканирования\n"
-          "2. Режим непреывного вывода в консоль значений\n"
-          "3. Режим записи в регистры: \n"
-          "3.1 циклической\n"
-          "3.2 разовой\n"
+   - Выберите режим сканирования
+          2. Режим непреывного вывода
+          3. Режим записи в регистры:
+          3.1 циклической
+          3.2 разовой
     - GUI интерфейс!!!
 """
 import time
 import traceback
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
-from MB_while import read_holding_regs_while
+# from project_files.MB_App.MB_App import read_holding_regs_while
 import Settings_MB
 
 
@@ -187,6 +187,7 @@ if __name__ == '__main__':
             cr = MBScraper(begin_sp=0, regs_sp=10, slaves_arr=[16], mode_read_registers=4).init_read_registers()
             del cr
         case 2:  # Непрерывное чтение
-            read_holding_regs_while([16], 16, 0)
+            pass
+            # read_holding_regs_while([16], 16, 0)
 
 MBScraper.client.close()
