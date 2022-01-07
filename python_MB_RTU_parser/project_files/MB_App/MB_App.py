@@ -91,6 +91,7 @@ class MBScraper(client_RTU):
                     case _:
                         return
         self.fact_reg = len(self.data_result) - 1 - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
+
         App_modules.printing_to_console(self)
 
         self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
