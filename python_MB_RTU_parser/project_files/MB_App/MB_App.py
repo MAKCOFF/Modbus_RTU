@@ -48,7 +48,7 @@ class MBScraper(client_RTU):
         self.traceback_error = None
         self.result = []
         self.mode_read_registers = mode_read_registers
-        self.obj_func = None
+        self.result_of_reading = None
         self.slave_id_ = None
         self.error_count = 0
         self.fact_reg = 0
@@ -69,25 +69,26 @@ class MBScraper(client_RTU):
             for register in range(self.quantity_registers):
                 match self.mode_read_registers:
                     case 1:  # HOLDING    ЧТЕНИЕ
-                        self.obj_func = self.read_holding_regs(register + self.number_first_register, slave_id)
-                        if self.obj_func == "None":
+                        self.result_of_reading = self.read_holding_regs(register + self.number_first_register, slave_id)
+                        if self.result_of_reading == "None":
                             self.error_count += 1
-                        self.data_result.append(self.obj_func)
+                        self.data_result.append(self.result_of_reading)
                     case 2:  # INPUT      ЧТЕНИЕ
-                        self.obj_func = self.read_input_regs(register + self.number_first_register, slave_id)
-                        if self.obj_func == "None":
+                        self.result_of_reading = self.read_input_regs(register + self.number_first_register, slave_id)
+                        if self.result_of_reading == "None":
                             self.error_count += 1
-                        self.data_result.append(self.obj_func)
+                        self.data_result.append(self.result_of_reading)
                     case 3:  # DISCRETE   ЧТЕНИЕ
-                        self.obj_func = self.read_discrete_inputs_regs(register + self.number_first_register, slave_id)
-                        if self.obj_func == "None":
+                        self.result_of_reading = self.read_discrete_inputs_regs(register + self.number_first_register,
+                                                                                slave_id)
+                        if self.result_of_reading == "None":
                             self.error_count += 1
-                        self.data_result.append(self.obj_func)
+                        self.data_result.append(self.result_of_reading)
                     case 4:  # COIL       ЧТЕНИЕ
-                        self.obj_func = self.read_coil_regs(register + self.number_first_register, slave_id)
-                        if self.obj_func == "None":
+                        self.result_of_reading = self.read_coil_regs(register + self.number_first_register, slave_id)
+                        if self.result_of_reading == "None":
                             self.error_count += 1
-                        self.data_result.append(self.obj_func)
+                        self.data_result.append(self.result_of_reading)
                     case _:
                         return
         self.fact_reg = len(self.data_result) - 1 - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
