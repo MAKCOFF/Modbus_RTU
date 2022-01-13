@@ -13,7 +13,6 @@ TODO:
 """
 import traceback
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
-# from project_files.MB_App.MB_App import read_holding_regs_while
 import Settings_MB
 import App_modules
 
@@ -69,28 +68,32 @@ class MBScraper(client_RTU):
             for register in range(self.quantity_registers):
                 match self.mode_read_registers:
                     case 1:  # HOLDING    ЧТЕНИЕ
-                        self.result_of_reading = self.read_holding_regs(register + self.number_first_register, slave_id)
+                        self.result_of_reading = \
+                            self.read_holding_regs(register + self.number_first_register, slave_id)
                         if self.result_of_reading == "None":
                             self.error_count += 1
                         self.data_result.append(self.result_of_reading)
                     case 2:  # INPUT      ЧТЕНИЕ
-                        self.result_of_reading = self.read_input_regs(register + self.number_first_register, slave_id)
+                        self.result_of_reading = \
+                            self.read_input_regs(register + self.number_first_register, slave_id)
                         if self.result_of_reading == "None":
                             self.error_count += 1
                         self.data_result.append(self.result_of_reading)
                     case 3:  # DISCRETE   ЧТЕНИЕ
-                        self.result_of_reading = self.read_discrete_inputs_regs(register + self.number_first_register,
-                                                                                slave_id)
+                        self.result_of_reading =\
+                            self.read_discrete_inputs_regs(register + self.number_first_register, slave_id)
                         if self.result_of_reading == "None":
                             self.error_count += 1
                         self.data_result.append(self.result_of_reading)
                     case 4:  # COIL       ЧТЕНИЕ
-                        self.result_of_reading = self.read_coil_regs(register + self.number_first_register, slave_id)
+                        self.result_of_reading = \
+                            self.read_coil_regs(register + self.number_first_register, slave_id)
                         if self.result_of_reading == "None":
                             self.error_count += 1
                         self.data_result.append(self.result_of_reading)
                     case _:
                         return
+
         self.fact_reg = len(self.data_result) - 1 - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
 
         App_modules.printing_to_console(self)
@@ -141,8 +144,8 @@ class MBScraper(client_RTU):
 
 if __name__ == '__main__':
     # Селектор режимов
-    mode = 1
-    match mode:
+    mode_read = 1
+    match mode_read:
         case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
             hr = MBScraper(number_first_register=0, quantity_registers=20, slaves_arr=[16],
                            mode_read_registers=1).read_init()
@@ -154,6 +157,4 @@ if __name__ == '__main__':
                            mode_read_registers=4).read_init()
         case 2:  # Непрерывное чтение
             pass
-            # read_holding_regs_while([16], 16, 0)
-
 MBScraper.client.close()
