@@ -15,6 +15,7 @@ import traceback
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
 import Settings_MB
 import App_modules
+from time import sleep
 
 
 class MBScraper(client_RTU):
@@ -158,4 +159,13 @@ if __name__ == '__main__':
             cr = MBScraper(number_first_register=0, quantity_registers=10, slaves_arr=[16],
                            mode_read_registers=4).read_init()
         case 2:  # Непрерывное чтение
-            pass
+            while True:
+                sleep(0.5)
+                h = App_modules.read_holding_w(MBScraper, 0, 20, 16)
+                sleep(0.2)
+                i = App_modules.read_input_w(MBScraper, 0, 20, 16)
+                sleep(0.2)
+                d = App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
+                sleep(0.2)
+                c = App_modules.read_coil_w(MBScraper, 0, 10, 16)
+                print(h, "\n", i, "\n", d, "\n", c)

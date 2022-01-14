@@ -1,3 +1,6 @@
+import traceback
+
+
 def time_of_function(function):  # Считает время выполнения функции
     def wrapped(*args):
         import time
@@ -6,6 +9,7 @@ def time_of_function(function):  # Считает время выполнени�
         time_diff = (time.perf_counter() - start_time)
         print("за %.3f sec" % time_diff)
         return res
+
     return wrapped
 
 
@@ -37,3 +41,43 @@ def printing_to_console(self):
                   "Считано c устройства", self.slave_id_, "COIL регистров", self.fact_reg, "\n", self.data_result)
             if self.error_count > 0:
                 print("   !pymodbus:\terrCnt: %s; last tb: %s" % (self.error_count, self.traceback_error))
+
+
+def read_holding_w(self, register, quantity_request, slave_id):
+    data = self.client.read_holding_registers(register, quantity_request, unit=slave_id)
+    assert (not data.isError())
+    if hasattr(data, "registers"):
+        return "".join(map(str, data.registers))  # Преобразуем из списка в строку
+    else:
+        self.traceback_error = traceback.format_exc()
+        return "None"
+
+
+def read_input_w(self, register, quantity_request, slave_id):
+    data = self.client.read_input_registers(register, quantity_request, unit=slave_id)
+    assert (not data.isError())
+    if hasattr(data, "registers"):
+        return "".join(map(str, data.registers))
+    else:
+        self.traceback_error = traceback.format_exc()
+        return "None"
+
+
+def read_discrete_inputs_w(self, register, quantity_request, slave_id):
+    data = self.client.read_discrete_inputs(register, quantity_request, unit=slave_id)
+    assert (not data.isError())
+    if hasattr(data, "bits"):
+        return "".join(map(str, data.bits))
+    else:
+        self.traceback_error = traceback.format_exc()
+        return "None"
+
+
+def read_coil_w(self, register, quantity_request, slave_id):
+    data = self.client.read_coils(register, quantity_request, unit=slave_id)
+    assert (not data.isError())
+    if hasattr(data, "bits"):
+        return "".join(map(str, data.bits))
+    else:
+        self.traceback_error = traceback.format_exc()
+        return "None"
