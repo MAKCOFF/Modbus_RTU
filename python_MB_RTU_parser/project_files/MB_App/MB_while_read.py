@@ -24,6 +24,7 @@ def read_input_w(self, register, quantity_request, slave_id):
 
 def read_discrete_inputs_w(self, register, quantity_request, slave_id):
     data = self.client.read_discrete_inputs(register, quantity_request, unit=slave_id)
+    assert (not data.isError())
     if hasattr(data, "bits"):
         return "".join(map(str, data.bits))
     else:
@@ -33,6 +34,7 @@ def read_discrete_inputs_w(self, register, quantity_request, slave_id):
 
 def read_coil_w(self, register, quantity_request, slave_id):
     data = self.client.read_coils(register, quantity_request, unit=slave_id)
+    assert (not data.isError())
     if hasattr(data, "bits"):
         return "".join(map(str, data.bits))
     else:

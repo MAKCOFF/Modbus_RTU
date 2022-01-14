@@ -103,7 +103,7 @@ class MBScraper(client_RTU):
 
     def read_holding_regs(self, register, slave_id):
         data = self.client.read_holding_registers(register, 1, unit=slave_id)
-        assert (not data.isError())  # test that we are not an error
+        assert (not data.isError())
         if hasattr(data, "registers"):
             meta_data = data.registers
             return "".join(map(str, meta_data))  # Преобразуем из списка в строку
@@ -113,7 +113,7 @@ class MBScraper(client_RTU):
 
     def read_input_regs(self, register, slave_id):
         data = self.client.read_input_registers(register, 1, unit=slave_id)
-        assert (not data.isError())  # test that we are not an error
+        assert (not data.isError())
         if hasattr(data, "registers"):
             meta_data = data.registers
             return "".join(map(str, meta_data))
@@ -124,6 +124,7 @@ class MBScraper(client_RTU):
     def read_discrete_inputs_regs(self, register, slave_id):
         data_read = []
         data = self.client.read_discrete_inputs(register, 1, unit=slave_id)
+        assert (not data.isError())
         if hasattr(data, "bits"):
             data_read.append(data.bits[0])
             return "".join(map(str, data_read))
@@ -134,6 +135,7 @@ class MBScraper(client_RTU):
     def read_coil_regs(self, register, slave_id):
         data_read = []
         data = self.client.read_coils(register, 1, unit=slave_id)
+        assert (not data.isError())
         if hasattr(data, "bits"):
             data_read.append(data.bits[0])
             return "".join(map(str, data_read))
@@ -157,4 +159,3 @@ if __name__ == '__main__':
                            mode_read_registers=4).read_init()
         case 2:  # Непрерывное чтение
             pass
-
