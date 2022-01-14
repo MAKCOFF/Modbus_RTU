@@ -38,7 +38,7 @@ class MBScraper(client_RTU):
 
     def __init__(self, slaves_arr, quantity_registers, number_first_register, mode_read_registers=1):
 
-        # MBScraper.count_obj_of_class += 1  # debug
+        # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
         self.slaves_arr = slaves_arr
@@ -55,8 +55,8 @@ class MBScraper(client_RTU):
         super().__init__()
 
     def __del__(self):
-        pass
-        # MBScraper.count_obj_of_class -= 1  # debug
+        self.client.close()
+        # self.count_obj_of_class -= 1  # debug
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
 
     @App_modules.time_of_function
@@ -157,4 +157,4 @@ if __name__ == '__main__':
                            mode_read_registers=4).read_init()
         case 2:  # Непрерывное чтение
             pass
-MBScraper.client.close()
+
