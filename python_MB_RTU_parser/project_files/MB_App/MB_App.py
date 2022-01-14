@@ -32,24 +32,24 @@ class MBScraper(client_RTU):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    slaves_arr = [16]  # default value
-    number_first_register_read = 0  # default value
-    quantity_registers_read = 10  # default value
+    # slaves_arr = [16]  # default value
+    # number_first_register_read = 0  # default value
+    # quantity_registers_read = 10  # default value
     number_first_register_write = 11  # default value
     values_for_write_registers = [80, 50, 25, 10]
-    start = False
+    start = True
     stop = False
 
     # count_obj_of_class = 0  # debug
 
-    def __init__(self, slaves_arr, quantity_registers_read, number_first_register_read):
+    def __init__(self, **kwargs):  # slaves_arr, quantity_registers_read, number_first_register_read
 
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
-        self.slaves_arr = slaves_arr
-        self.quantity_registers_read = quantity_registers_read
-        self.number_first_register_read = number_first_register_read
+        self.slaves_arr = kwargs.get('slaves_arr', [16])
+        self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
+        self.number_first_register_read = kwargs.get('number_first_register_read', 0)
         self.traceback_error = None
         self.result = []
         self.mode_read_registers = 1
@@ -86,7 +86,7 @@ class MBScraper(client_RTU):
                             self.error_count += 1
                         self.data_result.append(self.result_of_reading)
                     case 3:  # DISCRETE   ЧТЕНИЕ
-                        self.result_of_reading =\
+                        self.result_of_reading = \
                             self.read_discrete_inputs_regs(register + self.number_first_register_read, slave_id)
                         if self.result_of_reading == "None":
                             self.error_count += 1
@@ -153,27 +153,36 @@ class MBScraper(client_RTU):
         while self.start:
             if self.stop:
                 break
-            data = self.client.readwrite_registers(self.number_first_register_read, self.quantity_registers_read,
-                                                   self.number_first_register_write, self.values_for_write_registers,
+            sleep(0.3)
+            data = self.client.readwrite_registers(read_address=self.number_first_register_read,
+                                                   read_count=self.quantity_registers_read,
+                                                   write_address=self.number_first_register_write,
+                                                   write_registers=self.values_for_write_registers,
                                                    unit=slave_id)
-            assert (not data.isError())
-            if hasattr(data, "registers"):
-                meta_data = data.registers
-                return "".join(map(str, meta_data))  # Преобразуем из списка в строку
-            else:
-                self.traceback_error = traceback.format_exc()
-                return "None"
+            # assert (not data.isError())
+            print(data)
+            # if hasattr(data, "registers"):
+            #     meta_data = data.registers
+            #     return print(meta_data)  # ("".join(map(str, meta_data)))  # Преобразуем из списка в строку
+            # else:
+            #     self.traceback_error = traceback.format_exc()
+            #     return print("None")
+
+    def write_regs(self, address=11, values=50, slave_id=16):
+        data = self.client.write_registers(address, values, unit=slave_id)
+        # assert (not data.isError())
+        print(data)
 
 
 if __name__ == '__main__':
     # Селектор режимов
-    mode_read = 1
+    mode_read = 4
     match mode_read:
         case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-            hr = MBScraper(number_first_register_read=0, quantity_registers_read=20, slaves_arr=[16]).read_init(1)
-            ir = MBScraper(number_first_register_read=0, quantity_registers_read=20, slaves_arr=[16]).read_init(2)
-            dr = MBScraper(number_first_register_read=0, quantity_registers_read=10, slaves_arr=[16]).read_init(3)
-            cr = MBScraper(number_first_register_read=0, quantity_registers_read=10, slaves_arr=[16]).read_init(4)
+            hr = MBScraper().read_init(1)
+            ir = MBScraper().read_init(2)
+            dr = MBScraper().read_init(3)
+            cr = MBScraper().read_init(4)
         case 2:  # Непрерывное чтение
             while MBScraper.start:
                 if MBScraper.stop:
@@ -188,5 +197,6 @@ if __name__ == '__main__':
                 c = App_modules.read_coil_w(MBScraper, 0, 10, 16)
                 print(h, "\n", i, "\n", d, "\n", c)
         case 3:  # Циклическая запись и чтение одновременно
-            hr = MBScraper(number_first_register_read=0, quantity_registers_read=20,
-                           slaves_arr=[16]).read_write_regs(16)
+            MBScraper().read_write_regs(16)
+        case 4:  # Разовая запись
+            MBScraper().write_regs()

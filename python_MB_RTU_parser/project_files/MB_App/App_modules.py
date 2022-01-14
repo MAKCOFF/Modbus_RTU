@@ -47,7 +47,7 @@ def read_holding_w(self, register, quantity_request, slave_id):
     data = self.client.read_holding_registers(register, quantity_request, unit=slave_id)
     assert (not data.isError())
     if hasattr(data, "registers"):
-        return "".join(map(str, data.registers))  # Преобразуем из списка в строку
+        return data.registers
     else:
         self.traceback_error = traceback.format_exc()
         return "None"
@@ -57,7 +57,7 @@ def read_input_w(self, register, quantity_request, slave_id):
     data = self.client.read_input_registers(register, quantity_request, unit=slave_id)
     assert (not data.isError())
     if hasattr(data, "registers"):
-        return "".join(map(str, data.registers))
+        return data.registers
     else:
         self.traceback_error = traceback.format_exc()
         return "None"
@@ -67,7 +67,7 @@ def read_discrete_inputs_w(self, register, quantity_request, slave_id):
     data = self.client.read_discrete_inputs(register, quantity_request, unit=slave_id)
     assert (not data.isError())
     if hasattr(data, "bits"):
-        return "".join(map(str, data.bits))
+        return data.bits
     else:
         self.traceback_error = traceback.format_exc()
         return "None"
@@ -77,7 +77,7 @@ def read_coil_w(self, register, quantity_request, slave_id):
     data = self.client.read_coils(register, quantity_request, unit=slave_id)
     assert (not data.isError())
     if hasattr(data, "bits"):
-        return "".join(map(str, data.bits))
+        return data.bits
     else:
         self.traceback_error = traceback.format_exc()
         return "None"
