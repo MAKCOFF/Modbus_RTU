@@ -13,8 +13,8 @@ def time_of_function(function):  # Считает время выполнени�
     return wrapped
 
 
-def printing_to_console(self):
-    match self.mode_read_registers:
+def printing_to_console(self, mode_read_registers):
+    match mode_read_registers:
         case 1:
             print("Запрошено", len(self.data_result) - 1,
                   "регистров по одному(size 2 BYTE) за каждый запрос \n",
