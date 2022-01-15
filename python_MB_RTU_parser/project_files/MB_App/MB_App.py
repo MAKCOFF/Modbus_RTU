@@ -4,11 +4,9 @@ MODE 1. Сканирует заданные регистры по одному, 
 
 !!!НЕ сделано!!!
 TODO:
-   - Выберите режим сканирования
-          2. Режим непреывного чтения - не отлажен
-          3. Режим записи в регистры:
-          3.1 циклической
-          3.2 разовой
+      3. Режим записи в регистры: # не отлажено
+      3.1 циклической
+      3.2 разовой
     - GUI интерфейс!!!
 """
 import traceback
@@ -32,9 +30,6 @@ class MBScraper(client_RTU):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    # slaves_arr = [16]  # default value
-    # number_first_register_read = 0  # default value
-    # quantity_registers_read = 10  # default value
     number_first_register_write = 11  # default value
     values_for_write_registers = [80, 50, 25, 10]
     start = True
@@ -42,7 +37,7 @@ class MBScraper(client_RTU):
 
     # count_obj_of_class = 0  # debug
 
-    def __init__(self, **kwargs):  # slaves_arr, quantity_registers_read, number_first_register_read
+    def __init__(self, **kwargs):
 
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
@@ -159,14 +154,7 @@ class MBScraper(client_RTU):
                                                    write_address=self.number_first_register_write,
                                                    write_registers=self.values_for_write_registers,
                                                    unit=slave_id)
-            # assert (not data.isError())
             print(data)
-            # if hasattr(data, "registers"):
-            #     meta_data = data.registers
-            #     return print(meta_data)  # ("".join(map(str, meta_data)))  # Преобразуем из списка в строку
-            # else:
-            #     self.traceback_error = traceback.format_exc()
-            #     return print("None")
 
     def write_regs(self, address=11, values=50, slave_id=16):
         data = self.client.write_registers(address, values, unit=slave_id)
@@ -187,15 +175,14 @@ if __name__ == '__main__':
             while MBScraper.start:
                 if MBScraper.stop:
                     break
-                sleep(0.5)
+                sleep(0.3)
                 h = App_modules.read_holding_w(MBScraper, 0, 20, 16)
-                sleep(0.2)
+                sleep(0.3)
                 i = App_modules.read_input_w(MBScraper, 0, 20, 16)
-                sleep(0.2)
+                sleep(0.3)
                 d = App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
-                sleep(0.2)
+                sleep(0.3)
                 c = App_modules.read_coil_w(MBScraper, 0, 10, 16)
-                print(h, "\n", i, "\n", d, "\n", c)
         case 3:  # Циклическая запись и чтение одновременно
             MBScraper().read_write_regs(16)
         case 4:  # Разовая запись
