@@ -9,14 +9,17 @@ TODO:
       3.2 разовой
     - GUI интерфейс!!!
 """
+import sys
 import traceback
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
 import Settings_MB
 import App_modules
 from time import sleep
+from Modbus_App import UiGETMBRegisters
+from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-class MBScraper(client_RTU):
+class MBScraper(client_RTU, UiGETMBRegisters):
     """
     Для вызова каждой функции класса создается новый объект класса.
     Объекту передаются аргументы, используемые для вызываемой функции
@@ -161,29 +164,38 @@ class MBScraper(client_RTU):
         # assert (not data.isError())
         print(data)
 
+    def selector_mode(self):
+        # Селектор режимов
+        mode_read = 4
+        match mode_read:
+            case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
+                hr = MBScraper().read_init(1)
+                ir = MBScraper().read_init(2)
+                dr = MBScraper().read_init(3)
+                cr = MBScraper().read_init(4)
+            case 2:  # Непрерывное чтение
+                while MBScraper.start:
+                    if MBScraper.stop:
+                        break
+                    sleep(0.3)
+                    h = App_modules.read_holding_w(MBScraper, 0, 20, 16)
+                    sleep(0.3)
+                    i = App_modules.read_input_w(MBScraper, 0, 20, 16)
+                    sleep(0.3)
+                    d = App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
+                    sleep(0.3)
+                    c = App_modules.read_coil_w(MBScraper, 0, 10, 16)
+            case 3:  # Циклическая запись и чтение одновременно
+                self.read_write_regs(16)
+            case 4:  # Разовая запись
+                self.write_regs()
+
 
 if __name__ == '__main__':
-    # Селектор режимов
-    mode_read = 4
-    match mode_read:
-        case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-            hr = MBScraper().read_init(1)
-            ir = MBScraper().read_init(2)
-            dr = MBScraper().read_init(3)
-            cr = MBScraper().read_init(4)
-        case 2:  # Непрерывное чтение
-            while MBScraper.start:
-                if MBScraper.stop:
-                    break
-                sleep(0.3)
-                h = App_modules.read_holding_w(MBScraper, 0, 20, 16)
-                sleep(0.3)
-                i = App_modules.read_input_w(MBScraper, 0, 20, 16)
-                sleep(0.3)
-                d = App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
-                sleep(0.3)
-                c = App_modules.read_coil_w(MBScraper, 0, 10, 16)
-        case 3:  # Циклическая запись и чтение одновременно
-            MBScraper().read_write_regs(16)
-        case 4:  # Разовая запись
-            MBScraper().write_regs()
+
+    app = QtWidgets.QApplication(sys.argv)
+    GETMBRegisters = QtWidgets.QDialog()
+    ui = UiGETMBRegisters()
+    ui.setup_ui(GETMBRegisters)
+    GETMBRegisters.show()
+    sys.exit(app.exec_())
