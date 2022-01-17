@@ -192,7 +192,6 @@ class MBScraper(client_RTU, UiGETMBRegisters):
 
 
 if __name__ == '__main__':
-
     app = QtWidgets.QApplication(sys.argv)
     GETMBRegisters = QtWidgets.QDialog()
     ui = UiGETMBRegisters()
