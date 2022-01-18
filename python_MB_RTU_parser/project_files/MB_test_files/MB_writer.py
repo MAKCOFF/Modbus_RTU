@@ -3,47 +3,38 @@ from collections import namedtuple
 from pymodbus.client.sync import ModbusSerialClient as pyRtu
 
 '''
-portNbr = "COM4"
-portName = 'com4'
+portNbr = "COM1"
+portName = 'com1'
 baudrate = 9600  
 parity_E = "E"
 '''
 timeoutSp = 0.1  # 0.018 + regsSp*0
 
 RTUSettings = namedtuple('RTU_Settings', ['method', 'port', 'baudrate', 'timeout', 'parity', 'stopbits'])
-unit = RTUSettings('rtu', 'COM4', 9600, timeoutSp, 'E', 1)
-print(unit)
-
-print("timeout: %s [s]" % timeoutSp)
-
-# pymc = pyRtu(method='rtu', port=portNbr, baudrate=baudrate, timeout=timeoutSp, parity=parity_E, stopbits=1)
-print(unit._asdict())
+unit = RTUSettings('rtu', 'COM1', 9600, timeoutSp, 'E', 1)
+# print(unit._asdict())
 pymc = pyRtu(**unit._asdict())
 
 
-def write_holding_reg(
-        slaves_arr,
-        value,
-        address
-):
+def write_holding_reg():
     errCnt = 0
+    address = 1
+    values = [20]
 
-    for slaveId in slaves_arr:
+    try:
+        data_write = pymc.write_registers(address=address, values=values, unit=16)
+        # data_read = pymc.read_holding_registers(address=address, count=4, unit=16)
 
-        try:
-            data = pymc.write_register(address, value, unit=slaveId)
+    except AttributeError:
+        errCnt += 1
+        tb = traceback.format_exc()
 
-        except AttributeError:
-            errCnt += 1
-            tb = traceback.format_exc()
-
-    print("\r", data, end="")
+    print(data_write, "\n")  #data_read.registers)
 
     if errCnt > 0:
         print("   !pymodbus:\terrCnt: %s; last tb: %s" % (errCnt, tb))
 
-    # print("\r", data, data.registers, end="")
-    # print("pymodbus:\t time to read %s x %s (x %s regs): %.3f [s] / %.3f [s/req]" % (
-    # len(slavesArr), iterSp, regsSp, timeDiff, timeDiff / iterSp))
 
-write_holding_reg([16], 8, 0)
+if __name__ == '__main__':
+
+    write_holding_reg()

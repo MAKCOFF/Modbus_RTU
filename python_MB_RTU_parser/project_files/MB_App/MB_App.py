@@ -33,8 +33,8 @@ class MBScraper(client_RTU, UiGETMBRegisters):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    number_first_register_write = 11  # default value
-    values_for_write_registers = [80, 50, 25, 10]
+    number_first_register_write = 0xB  # default value
+    values_for_write_registers = [0x5A]
     start = True
     stop = False
 
@@ -46,7 +46,7 @@ class MBScraper(client_RTU, UiGETMBRegisters):
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
         self.slaves_arr = kwargs.get('slaves_arr', [16])
-        self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
+        self.quantity_registers_read = kwargs.get('quantity_registers_read', 0xA)
         self.number_first_register_read = kwargs.get('number_first_register_read', 0)
         self.traceback_error = None
         self.result = []
@@ -161,12 +161,11 @@ class MBScraper(client_RTU, UiGETMBRegisters):
 
     def write_regs(self, address=11, values=50, slave_id=16):
         data = self.client.write_registers(address, values, unit=slave_id)
-        # assert (not data.isError())
         print(data)
 
-    def selector_mode(self):
+    def run(self):
         # Селектор режимов
-        mode_read = 4
+        mode_read = 1
         match mode_read:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
                 hr = MBScraper().read_init(1)
@@ -192,9 +191,12 @@ class MBScraper(client_RTU, UiGETMBRegisters):
 
 
 if __name__ == '__main__':
-    app = QtWidgets.QApplication(sys.argv)
-    GETMBRegisters = QtWidgets.QDialog()
-    ui = UiGETMBRegisters()
-    ui.setup_ui(GETMBRegisters)
-    GETMBRegisters.show()
-    sys.exit(app.exec_())
+
+    MBScraper().run()
+
+    # app = QtWidgets.QApplication(sys.argv)
+    # GETMBRegisters = QtWidgets.QDialog()
+    # ui = UiGETMBRegisters()
+    # ui.setup_ui(GETMBRegisters)
+    # GETMBRegisters.show()
+    # sys.exit(app.exec_())
