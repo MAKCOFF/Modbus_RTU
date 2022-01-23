@@ -22,10 +22,9 @@ def write_holding_reg():
     address = 0
     values = [20, 40, 60, 80, 100]
 
-    # val = struct.pack("Bd", values)
     builder = BinaryPayloadBuilder(byteorder=Endian.Big)
     builder.add_32bit_float(-20.85)
-    builder.add_32bit_float(-5.85)
+    builder.add_32bit_float(5.85)
     payload = builder.build()
     print(payload)
     # v = b'\xa6A'
