@@ -33,8 +33,8 @@ class MBScraper(client_RTU, UiGETMBRegisters):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    number_first_register_write = 0xB  # default value
-    values_for_write_registers = [0x5A]
+    number_first_register_write = 4  # default value
+    values_for_write_registers = [20, 30, 40, 50, 60]
     start = True
     stop = False
 
@@ -46,8 +46,8 @@ class MBScraper(client_RTU, UiGETMBRegisters):
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
         self.slaves_arr = kwargs.get('slaves_arr', [16])
-        self.quantity_registers_read = kwargs.get('quantity_registers_read', 0xA)
-        self.number_first_register_read = kwargs.get('number_first_register_read', 0)
+        self.quantity_registers_read = kwargs.get('quantity_registers_read', 5)
+        self.number_first_register_read = kwargs.get('number_first_register_read', 4)
         self.traceback_error = None
         self.result = []
         self.mode_read_registers = 1
@@ -64,7 +64,7 @@ class MBScraper(client_RTU, UiGETMBRegisters):
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
 
     @App_modules.time_of_function
-    def read_init(self, mode_read_registers=1):
+    def _read_init(self, mode_read_registers=1):
         self.error_count = 0
         for slave_id in self.slaves_arr:
             self.slave_id_ = slave_id
@@ -106,6 +106,11 @@ class MBScraper(client_RTU, UiGETMBRegisters):
         return self.result
 
     def read_holding_regs(self, register, slave_id):
+        """
+        :param register: Текущий регистр для опроса
+        :param slave_id: Адрес слэйва
+        :return: Возвращает str значение регистра или None при ошибке чтения
+        """
         data = self.client.read_holding_registers(register, 1, unit=slave_id)
         assert (not data.isError())
         if hasattr(data, "registers"):
@@ -116,6 +121,11 @@ class MBScraper(client_RTU, UiGETMBRegisters):
             return "None"
 
     def read_input_regs(self, register, slave_id):
+        """
+        :param register: Текущий регистр для опроса
+        :param slave_id: Адрес слэйва
+        :return: Возвращает str значение регистра или None при ошибке чтения
+        """
         data = self.client.read_input_registers(register, 1, unit=slave_id)
         assert (not data.isError())
         if hasattr(data, "registers"):
@@ -126,6 +136,11 @@ class MBScraper(client_RTU, UiGETMBRegisters):
             return "None"
 
     def read_discrete_inputs_regs(self, register, slave_id):
+        """
+        :param register: Текущий регистр для опроса
+        :param slave_id: Адрес слэйва
+        :return: Возвращает str значение регистра или None при ошибке чтения
+        """
         data_read = []
         data = self.client.read_discrete_inputs(register, 1, unit=slave_id)
         assert (not data.isError())
@@ -137,6 +152,11 @@ class MBScraper(client_RTU, UiGETMBRegisters):
             return "None"
 
     def read_coil_regs(self, register, slave_id):
+        """
+        :param register: Текущий регистр для опроса
+        :param slave_id: Адрес слэйва
+        :return: Возвращает str значение регистра или None при ошибке чтения
+        """
         data_read = []
         data = self.client.read_coils(register, 1, unit=slave_id)
         assert (not data.isError())
@@ -151,13 +171,17 @@ class MBScraper(client_RTU, UiGETMBRegisters):
         while self.start:
             if self.stop:
                 break
-            sleep(0.3)
+            sleep(0.5)
             data = self.client.readwrite_registers(read_address=self.number_first_register_read,
                                                    read_count=self.quantity_registers_read,
                                                    write_address=self.number_first_register_write,
                                                    write_registers=self.values_for_write_registers,
                                                    unit=slave_id)
-            print(data)
+            if hasattr(data, "registers"):
+                print(data.registers)
+            else:
+                self.traceback_error = traceback.format_exc()
+                print(self.traceback_error)
 
     def write_regs(self, address=11, values=50, slave_id=16):
         data = self.client.write_registers(address, values, unit=slave_id)
@@ -165,13 +189,13 @@ class MBScraper(client_RTU, UiGETMBRegisters):
 
     def run(self):
         # Селектор режимов
-        mode_read = 1
+        mode_read = 3
         match mode_read:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                hr = MBScraper().read_init(1)
-                ir = MBScraper().read_init(2)
-                dr = MBScraper().read_init(3)
-                cr = MBScraper().read_init(4)
+                hr = MBScraper()._read_init(1)
+                ir = MBScraper()._read_init(2)
+                dr = MBScraper()._read_init(3)
+                cr = MBScraper()._read_init(4)
             case 2:  # Непрерывное чтение
                 while MBScraper.start:
                     if MBScraper.stop:
