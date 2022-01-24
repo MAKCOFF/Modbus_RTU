@@ -22,7 +22,7 @@ def write_holding_reg():
     address = 0
     values = [20, 40, 60, 80, 100]
 
-    builder = BinaryPayloadBuilder(byteorder=Endian.Big)
+    builder = BinaryPayloadBuilder(byteorder=Endian.Big, wordorder=Endian.Big)
     builder.add_32bit_float(-20.85)
     builder.add_32bit_float(5.85)
     payload = builder.build()
@@ -58,7 +58,7 @@ def write_holding_reg():
     try:
         data_write = pymc.write_registers(address=address, values=payload, unit=16, skip_encode=True)
         data_read = pymc.read_holding_registers(address=address, count=8, unit=16)
-        decoder = BinaryPayloadDecoder.fromRegisters(data_read.registers, byteorder=Endian.Big)
+        decoder = BinaryPayloadDecoder.fromRegisters(data_read.registers, byteorder=Endian.Big, wordorder=Endian.Big)
         value_1 = decoder.decode_32bit_float()
         value_2 = decoder.decode_32bit_float()
         arr = [value_1, value_2]
