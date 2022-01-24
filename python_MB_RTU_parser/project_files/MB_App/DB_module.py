@@ -21,14 +21,6 @@ def insert_value_to_db():
         db.commit()
 
 
-def create_table_in_db():
-    with sqlite3.connect('database.db') as db:
-        cursor = db.cursor()
-        query = """ CREATE TABLE IF NOT EXISTS start (value INTEGER) """
-        cursor.execute(query)
-        db.commit()
-
-
 def change_values_in_db(start):
     with sqlite3.connect('database.db') as db:
         cursor = db.cursor()
@@ -46,9 +38,14 @@ def get_stop_from_db():
             value = i[0]
     return value
 
+# def create_table_in_db():
+#     with sqlite3.connect('database.db') as db:
+#         cursor = db.cursor()
+#         query = """ CREATE TABLE IF NOT EXISTS start (value INTEGER) """
+#         cursor.execute(query)
+#         db.commit()
 
 # change_values_in_db(1)
 # insert_value_to_db()
-# db.commit()
 # query = """ INSERT INTO expenses (id, value) VALUES """
 # query = """ CREATE TABLE IF NOT EXISTS expenses(id INTEGER, value INTEGER) """
