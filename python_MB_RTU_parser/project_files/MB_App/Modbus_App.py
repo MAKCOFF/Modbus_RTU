@@ -4,23 +4,23 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class UiGETMBRegisters(object):
 
     def __init__(self):
-        self.push_button = QtWidgets.QPushButton(GETMBRegisters)
-        self.label = QtWidgets.QLabel(GETMBRegisters)
-        self.label_2 = QtWidgets.QLabel(GETMBRegisters)
-        self.lineEdit_3 = QtWidgets.QLineEdit(GETMBRegisters)
-        self.label_5 = QtWidgets.QLabel(GETMBRegisters)
-        self.lineEdit = QtWidgets.QLineEdit(GETMBRegisters)
-        self.label_4 = QtWidgets.QLabel(GETMBRegisters)
-        self.lineEdit_2 = QtWidgets.QLineEdit(GETMBRegisters)
-        self.label_3 = QtWidgets.QLabel(GETMBRegisters)
-        self.checkBox_2 = QtWidgets.QCheckBox(GETMBRegisters)
-        self.checkBox_4 = QtWidgets.QCheckBox(GETMBRegisters)
-        self.checkBox_3 = QtWidgets.QCheckBox(GETMBRegisters)
-        self.checkBox = QtWidgets.QCheckBox(GETMBRegisters)
+        self.push_button = QtWidgets.QPushButton(get_mb_registers)
+        self.label = QtWidgets.QLabel(get_mb_registers)
+        self.label_2 = QtWidgets.QLabel(get_mb_registers)
+        self.lineEdit_3 = QtWidgets.QLineEdit(get_mb_registers)
+        self.label_5 = QtWidgets.QLabel(get_mb_registers)
+        self.lineEdit = QtWidgets.QLineEdit(get_mb_registers)
+        self.label_4 = QtWidgets.QLabel(get_mb_registers)
+        self.lineEdit_2 = QtWidgets.QLineEdit(get_mb_registers)
+        self.label_3 = QtWidgets.QLabel(get_mb_registers)
+        self.checkBox_2 = QtWidgets.QCheckBox(get_mb_registers)
+        self.checkBox_4 = QtWidgets.QCheckBox(get_mb_registers)
+        self.checkBox_3 = QtWidgets.QCheckBox(get_mb_registers)
+        self.checkBox = QtWidgets.QCheckBox(get_mb_registers)
 
-    def setup_ui(self, GETMBRegisters):
-        GETMBRegisters.setObjectName("GETMBRegisters")
-        GETMBRegisters.resize(845, 787)
+    def setup_ui(self, get_mb_registers):
+        get_mb_registers.setObjectName("GETMBRegisters")
+        get_mb_registers.resize(845, 787)
         self.checkBox.setGeometry(QtCore.QRect(30, 220, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -116,13 +116,13 @@ class UiGETMBRegisters(object):
         self.push_button.setGeometry(QtCore.QRect(560, 690, 231, 51))
         self.push_button.setObjectName("pushButton")
 
-        self.re_translate_ui(GETMBRegisters)
-        QtCore.QMetaObject.connectSlotsByName(GETMBRegisters)
+        self.re_translate_ui(get_mb_registers)
+        QtCore.QMetaObject.connectSlotsByName(get_mb_registers)
 
-    def re_translate_ui(self, GETMBRegisters):
+    def re_translate_ui(self, get_mb_registers):
         _translate = QtCore.QCoreApplication.translate
-        GETMBRegisters.setWindowTitle(_translate("GETMBRegisters", "MB App"))
-        GETMBRegisters.setToolTip(_translate("GETMBRegisters", "<html><head/><body><p><br/></p></body></html>"))
+        get_mb_registers.setWindowTitle(_translate("GETMBRegisters", "MB App"))
+        get_mb_registers.setToolTip(_translate("GETMBRegisters", "<html><head/><body><p><br/></p></body></html>"))
         self.checkBox.setText(_translate("GETMBRegisters", "Coils registers "))
         self.checkBox_3.setText(_translate("GETMBRegisters", "Holding registers"))
         self.checkBox_4.setText(_translate("GETMBRegisters", "Input registers"))
@@ -137,8 +137,8 @@ class UiGETMBRegisters(object):
 if __name__ == "__main__":
     import sys
     app = QtWidgets.QApplication(sys.argv)
-    GETMBRegisters = QtWidgets.QDialog()
+    get_mb_registers = QtWidgets.QDialog()
     ui = UiGETMBRegisters()
-    ui.setup_ui(GETMBRegisters)
-    GETMBRegisters.show()
+    ui.setup_ui(get_mb_registers)
+    get_mb_registers.show()
     sys.exit(app.exec_())

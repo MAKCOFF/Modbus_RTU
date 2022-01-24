@@ -1,22 +1,16 @@
+__VERSION__ = "v 1.0.8"
 """
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
 
-!!!НЕ сделано!!!
-TODO:
-      3. Режим записи в регистры: # не отлажено
-      3.1 циклической
-      3.2 разовой
-    - GUI интерфейс!!!
+TODO: GUI интерфейс!!!
 """
-import sys
 import traceback
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
 import Settings_MB
 import App_modules
 from time import sleep
 from Modbus_App import UiGETMBRegisters
-from PyQt5 import QtCore, QtGui, QtWidgets
 import DB_module
 
 
@@ -219,10 +213,3 @@ class MBScraper(client_RTU, UiGETMBRegisters):
 
 if __name__ == '__main__':
     MBScraper().run()
-
-    # app = QtWidgets.QApplication(sys.argv)
-    # GETMBRegisters = QtWidgets.QDialog()
-    # ui = UiGETMBRegisters()
-    # ui.setup_ui(GETMBRegisters)
-    # GETMBRegisters.show()
-    # sys.exit(app.exec_())
