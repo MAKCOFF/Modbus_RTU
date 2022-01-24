@@ -5,7 +5,10 @@ def get_values_from_db():
     with sqlite3.connect('database.db') as db:
         cursor = db.cursor()
         query = """ SELECT value FROM expenses """
-        cursor.execute(query)
+        try:
+            cursor.execute(query)
+        except sqlite3.DatabaseError as err:
+            print("Ошибка:", err)
         values = []
         for i in cursor:
             value = i[0]
@@ -33,7 +36,10 @@ def get_stop_from_db():
     with sqlite3.connect('database.db') as db:
         cursor = db.cursor()
         query = """ SELECT value FROM start """
-        cursor.execute(query)
+        try:
+            cursor.execute(query)
+        except sqlite3.DatabaseError as err:
+            print("Ошибка:", err)
         for i in cursor:
             value = i[0]
     return value
