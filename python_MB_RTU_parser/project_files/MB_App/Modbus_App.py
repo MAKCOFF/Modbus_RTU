@@ -18,9 +18,9 @@ class UiGETMBRegisters(object):
         self.checkBox_3 = QtWidgets.QCheckBox(get_mb_registers)
         self.checkBox = QtWidgets.QCheckBox(get_mb_registers)
 
-    def setup_ui(self, get_mb_registers):
-        get_mb_registers.setObjectName("GETMBRegisters")
-        get_mb_registers.resize(845, 787)
+    def setup_ui(self, get_mb_registers_pbj):
+        get_mb_registers_pbj.setObjectName("GETMBRegisters")
+        get_mb_registers_pbj.resize(845, 787)
         self.checkBox.setGeometry(QtCore.QRect(30, 220, 161, 31))
         font = QtGui.QFont()
         font.setPointSize(12)
@@ -116,13 +116,13 @@ class UiGETMBRegisters(object):
         self.push_button.setGeometry(QtCore.QRect(560, 690, 231, 51))
         self.push_button.setObjectName("pushButton")
 
-        self.re_translate_ui(get_mb_registers)
-        QtCore.QMetaObject.connectSlotsByName(get_mb_registers)
+        self.re_translate_ui(get_mb_registers_pbj)
+        QtCore.QMetaObject.connectSlotsByName(get_mb_registers_pbj)
 
-    def re_translate_ui(self, get_mb_registers):
+    def re_translate_ui(self, get_mb_registers_obj):
         _translate = QtCore.QCoreApplication.translate
-        get_mb_registers.setWindowTitle(_translate("GETMBRegisters", "MB App"))
-        get_mb_registers.setToolTip(_translate("GETMBRegisters", "<html><head/><body><p><br/></p></body></html>"))
+        get_mb_registers_obj.setWindowTitle(_translate("GETMBRegisters", "MB App"))
+        get_mb_registers_obj.setToolTip(_translate("GETMBRegisters", "<html><head/><body><p><br/></p></body></html>"))
         self.checkBox.setText(_translate("GETMBRegisters", "Coils registers "))
         self.checkBox_3.setText(_translate("GETMBRegisters", "Holding registers"))
         self.checkBox_4.setText(_translate("GETMBRegisters", "Input registers"))

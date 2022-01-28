@@ -1,2 +1,2 @@
-MB_App.py
+main.py
 pause
