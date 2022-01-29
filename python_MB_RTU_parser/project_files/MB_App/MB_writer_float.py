@@ -5,8 +5,8 @@ from pymodbus.payload import BinaryPayloadBuilder, BinaryPayloadDecoder
 from pymodbus.constants import Endian
 
 '''
-portNbr = "COM1"
-portName = 'com1'
+portNbr = "COM1"  # for Linux /dev/ttyS1
+portName = 'com1'  # for Linux /dev/ttyS1
 baudrate = 9600  
 parity_E = "E"
 '''

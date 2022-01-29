@@ -1,6 +1,6 @@
 method: str = 'rtu'
 setting_RTU = {    
-    "port": 'COM1',
+    "port": 'COM1',  # for Linux /dev/ttyS1
     "baudrate": 9600,
     "timeout": 0.1,
     "stopbits": 1,

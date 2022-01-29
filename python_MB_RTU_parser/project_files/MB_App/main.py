@@ -1,21 +1,22 @@
 #!/home/maksim/Загрузки/Python-3.10.2/python
 #-*- coding: utf-8 -*-
+__version__ = 'v 1.0'
 """
-Modbus RTU сканер
+Modbus RTU сканер - консольный, только int значения 2 байта
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-
-TODO: GUI интерфейс!!!
+MODE 2. Непрерывное чтение
+MODE 3. Циклическая запись и чтение одним запросом
+MODE 4. Одного регистра
 """
 import traceback
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
 import Settings_MB
 import App_modules
 from time import sleep
-from Modbus_App import UiGETMBRegisters
 import DB_module
 
 
-class MBScraper(client_RTU, UiGETMBRegisters):
+class MBScraper(client_RTU):
     """
     Для вызова каждой функции класса создается новый объект класса.
     Объекту передаются аргументы, используемые для вызываемой функции
@@ -30,9 +31,6 @@ class MBScraper(client_RTU, UiGETMBRegisters):
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
     number_first_register_write = 0  # default value
-    values_for_write_registers = [20, 30, 40, 50, 60]
-    stop = False
-
     # count_obj_of_class = 0  # debug
 
     def __init__(self, **kwargs):
@@ -167,7 +165,7 @@ class MBScraper(client_RTU, UiGETMBRegisters):
             stop = DB_module.get_stop_from_db()
             if stop == 0:
                 break
-            values = DB_module.get_values_from_db()
+            values = DB_module.get_values_from_db(count=4)
             sleep(0.5)
             data = self.client.readwrite_registers(read_address=self.number_first_register_read,
                                                    read_count=self.quantity_registers_read,
@@ -186,26 +184,26 @@ class MBScraper(client_RTU, UiGETMBRegisters):
 
     def run(self):
         # Селектор режимов
-        mode_read = 3
+        mode_read = input(int)
         match mode_read:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                hr = MBScraper()._read_init(1)
-                ir = MBScraper()._read_init(2)
-                dr = MBScraper()._read_init(3)
-                cr = MBScraper()._read_init(4)
+                MBScraper()._read_init(1)
+                MBScraper()._read_init(2)
+                MBScraper()._read_init(3)
+                MBScraper()._read_init(4)
             case 2:  # Непрерывное чтение
                 while True:
                     stop = DB_module.get_stop_from_db()
                     if stop == 0:
                         break
                     sleep(0.3)
-                    h = App_modules.read_holding_w(MBScraper, 0, 20, 16)
+                    App_modules.read_holding_w(MBScraper, 0, 20, 16)
                     sleep(0.3)
-                    i = App_modules.read_input_w(MBScraper, 0, 20, 16)
+                    App_modules.read_input_w(MBScraper, 0, 20, 16)
                     sleep(0.3)
-                    d = App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
+                    App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
                     sleep(0.3)
-                    c = App_modules.read_coil_w(MBScraper, 0, 10, 16)
+                    App_modules.read_coil_w(MBScraper, 0, 10, 16)
             case 3:  # Циклическая запись и чтение одновременно
                 self.read_write_regs(16)
             case 4:  # Разовая запись
