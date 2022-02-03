@@ -13,6 +13,7 @@ from pymodbus.client.sync import ModbusSerialClient as client_RTU
 import Settings_MB
 import App_modules
 from time import sleep
+from PyQt5 import QtCore, QtGui, QtWidgets
 import DB_module
 
 
@@ -212,3 +213,10 @@ class MBScraper(client_RTU):
 
 if __name__ == '__main__':
     MBScraper().run()
+#     import sys
+#     app = QtWidgets.QApplication(sys.argv)
+#     MainWindow = QtWidgets.QMainWindow()
+#     ui = Ui_MainWindow()
+#     ui.setupUi(MainWindow)
+#     MainWindow.show()
+#     sys.exit(app.exec_())
