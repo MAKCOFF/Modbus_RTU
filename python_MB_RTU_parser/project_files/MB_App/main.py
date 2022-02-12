@@ -1,4 +1,4 @@
-#!/home/maksim/Загрузки/Python-3.10.2/python
+#!/home/max/Загрузки/Python-3.10.2/python
 #-*- coding: utf-8 -*-
 __version__ = 'v 1.0'
 """
@@ -185,7 +185,7 @@ class MBScraper(client_RTU):
 
     def run(self):
         # Селектор режимов
-        mode_read = input(int)
+        mode_read = 1
         match mode_read:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
                 MBScraper()._read_init(1)
