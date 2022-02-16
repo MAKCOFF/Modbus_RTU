@@ -39,7 +39,7 @@ class MBScraper(client_RTU):
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
-        self.slaves_arr = kwargs.get('slaves_arr', [16])
+        self.slaves_arr = kwargs.get('slaves_arr', [17])
         self.quantity_registers_read = kwargs.get('quantity_registers_read', 5)
         self.number_first_register_read = kwargs.get('number_first_register_read', 0)
         self.traceback_error = None
