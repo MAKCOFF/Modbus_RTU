@@ -138,7 +138,7 @@ class Ui_MainWindow(object):
         self.btn_request = QtWidgets.QPushButton(self.centralWidget)
         self.btn_request.setGeometry(QtCore.QRect(560, 80, 91, 41))
         self.btn_request.setObjectName("btn_request")
-        self.btn_request.setEnabled(False)
+        # self.btn_request.setEnabled(False)
         self.btn_stop_req = QtWidgets.QPushButton(self.centralWidget)
         self.btn_stop_req.setEnabled(False)
         self.btn_stop_req.setGeometry(QtCore.QRect(560, 140, 101, 51))
@@ -203,7 +203,7 @@ class Ui_MainWindow(object):
 
         #  radiobutton state
         self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
-        # self.radio_single_r.setChecked(True)
+        self.radio_single_r.setChecked(True)
         self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
         self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
         self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
@@ -211,7 +211,7 @@ class Ui_MainWindow(object):
 
     def button_state(self, btn):
         if btn.isChecked():
-            self.btn_request.setEnabled(True)
+            # self.btn_request.setEnabled(True)
             if btn.text() == "Single read":
                 self.state_button = 1
             elif btn.text() == "Cicle read":
