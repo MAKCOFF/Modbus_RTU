@@ -11,6 +11,10 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 
 
 class Ui_MainWindow(object):
+
+    # def __init__(self):
+    #     self.state_button = 0
+
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1299, 727)
@@ -132,9 +136,9 @@ class Ui_MainWindow(object):
         self.label_7.setGeometry(QtCore.QRect(20, 210, 141, 17))
         self.label_7.setObjectName("label_7")
         self.btn_request = QtWidgets.QPushButton(self.centralWidget)
-        self.btn_request.setEnabled(False)
         self.btn_request.setGeometry(QtCore.QRect(560, 80, 91, 41))
         self.btn_request.setObjectName("btn_request")
+        self.btn_request.setEnabled(False)
         self.btn_stop_req = QtWidgets.QPushButton(self.centralWidget)
         self.btn_stop_req.setEnabled(False)
         self.btn_stop_req.setGeometry(QtCore.QRect(560, 140, 101, 51))
@@ -146,6 +150,7 @@ class Ui_MainWindow(object):
         self.verticalLayout.setContentsMargins(11, 11, 11, 11)
         self.verticalLayout.setSpacing(6)
         self.verticalLayout.setObjectName("verticalLayout")
+
         self.radio_single_r = QtWidgets.QRadioButton(self.widget)
         self.radio_single_r.setObjectName("radio_single_r")
         self.verticalLayout.addWidget(self.radio_single_r)
@@ -158,6 +163,7 @@ class Ui_MainWindow(object):
         self.radio_single_w = QtWidgets.QRadioButton(self.widget)
         self.radio_single_w.setObjectName("radio_single_w")
         self.verticalLayout.addWidget(self.radio_single_w)
+
         self.widget1 = QtWidgets.QWidget(self.centralWidget)
         self.widget1.setGeometry(QtCore.QRect(100, 80, 101, 112))
         self.widget1.setObjectName("widget1")
@@ -165,6 +171,7 @@ class Ui_MainWindow(object):
         self.verticalLayout_2.setContentsMargins(11, 11, 11, 11)
         self.verticalLayout_2.setSpacing(6)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
+
         self.checkBox_inp = QtWidgets.QCheckBox(self.widget1)
         self.checkBox_inp.setObjectName("checkBox_inp")
         self.verticalLayout_2.addWidget(self.checkBox_inp)
@@ -177,6 +184,7 @@ class Ui_MainWindow(object):
         self.checkBox_coil = QtWidgets.QCheckBox(self.widget1)
         self.checkBox_coil.setObjectName("checkBox_coil")
         self.verticalLayout_2.addWidget(self.checkBox_coil)
+
         MainWindow.setCentralWidget(self.centralWidget)
         self.menuBar = QtWidgets.QMenuBar(MainWindow)
         self.menuBar.setGeometry(QtCore.QRect(0, 0, 1299, 22))
@@ -192,6 +200,31 @@ class Ui_MainWindow(object):
         self.retranslateUi(MainWindow)
         self.cbDataBits.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+
+        #  radiobutton state
+        self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
+        # self.radio_single_r.setChecked(True)
+        self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
+        self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
+        self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
+        self.state_button = 0
+
+    def button_state(self, btn):
+        if btn.isChecked():
+            self.btn_request.setEnabled(True)
+            if btn.text() == "Single read":
+                self.state_button = 1
+            elif btn.text() == "Cicle read":
+                self.state_button = 2
+            elif btn.text() == "Cicle read/write":
+                self.state_button = 3
+            elif btn.text() == "Single write":
+                self.state_button = 4
+        # self.ptRawData.setPlainText(btn.text())
+        # print(self.state_button)
+
+    def button_request_interlock(self):
+        pass
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
@@ -247,11 +280,11 @@ class Ui_MainWindow(object):
         self.checkBox_coil.setText(_translate("MainWindow", "COIL"))
 
 
-# if __name__ == "__main__":
-#     import sys
-#     app = QtWidgets.QApplication(sys.argv)
-#     MainWindow = QtWidgets.QMainWindow()
-#     ui = Ui_MainWindow()
-#     ui.setupUi(MainWindow)
-#     MainWindow.show()
-#     sys.exit(app.exec_())
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

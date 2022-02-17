@@ -1,5 +1,5 @@
 #!/home/max/Загрузки/Python-3.10.2/python
-#-*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
 __version__ = 'v 1.0'
 """
 Modbus RTU сканер - консольный, только int значения 2 байта
@@ -14,10 +14,11 @@ import Settings_MB
 import App_modules
 from time import sleep
 from PyQt5 import QtCore, QtGui, QtWidgets
+from mainwindow import Ui_MainWindow
 import DB_module
 
 
-class MBScraper(client_RTU):
+class MBScraper(client_RTU, Ui_MainWindow):
     """
     Для вызова каждой функции класса создается новый объект класса.
     Объекту передаются аргументы, используемые для вызываемой функции
@@ -30,8 +31,11 @@ class MBScraper(client_RTU):
                           4 COIL       ЧТЕНИЕ
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
-
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
     number_first_register_write = 0  # default value
+
     # count_obj_of_class = 0  # debug
 
     def __init__(self, **kwargs):
@@ -44,7 +48,6 @@ class MBScraper(client_RTU):
         self.number_first_register_read = kwargs.get('number_first_register_read', 0)
         self.traceback_error = None
         self.result = []
-        self.mode_read_registers = 1
         self.result_of_reading = None
         self.slave_id_ = None
         self.error_count = 0
@@ -62,7 +65,7 @@ class MBScraper(client_RTU):
         self.error_count = 0
         for slave_id in self.slaves_arr:
             self.slave_id_ = slave_id
-            self.data_result.insert(0, self.slave_id_)  # Вставляем в начало списка адрес слэйва int
+            # self.data_result.insert(0, self.slave_id_)  # Вставляем для консоли в начало списка адрес слэйва int
             for register in range(self.quantity_registers_read):
                 match mode_read_registers:
                     case 1:  # HOLDING    ЧТЕНИЕ
@@ -185,13 +188,16 @@ class MBScraper(client_RTU):
 
     def run(self):
         # Селектор режимов
-        mode_read = 1
-        match mode_read:
+        match self.state_button:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                MBScraper()._read_init(1)
-                MBScraper()._read_init(2)
-                MBScraper()._read_init(3)
-                MBScraper()._read_init(4)
+                if self.ui.checkBox_hold.checkState():
+                    MBScraper()._read_init(1)
+                if self.ui.checkBox_inp.checkState():
+                    MBScraper()._read_init(2)
+                if self.ui.checkBox_dis.checkState():
+                    MBScraper()._read_init(3)
+                if self.ui.checkBox_coil.checkState():
+                    MBScraper()._read_init(4)
             case 2:  # Непрерывное чтение
                 while True:
                     stop = DB_module.get_stop_from_db()
@@ -220,3 +226,4 @@ if __name__ == '__main__':
 #     ui.setupUi(MainWindow)
 #     MainWindow.show()
 #     sys.exit(app.exec_())
+# self.ui.checkBox_hold.checkState()
