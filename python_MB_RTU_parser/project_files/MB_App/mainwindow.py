@@ -212,15 +212,16 @@ class Ui_MainWindow(object):
     def button_state(self, btn):
         if btn.isChecked():
             # self.btn_request.setEnabled(True)
-            if btn.text() == "Single read":
-                self.state_button = 1
-            elif btn.text() == "Cicle read":
-                self.state_button = 2
-            elif btn.text() == "Cicle read/write":
-                self.state_button = 3
-            elif btn.text() == "Single write":
-                self.state_button = 4
-        # self.ptRawData.setPlainText(btn.text())
+            match btn.text():
+                case "Single read":
+                    self.state_button = 1
+                case "Cicle read":
+                    self.state_button = 2
+                case "Cicle read/write":
+                    self.state_button = 3
+                case "Single write":
+                    self.state_button = 4
+        self.ptRawData.setPlainText(btn.text())
         # print(self.state_button)
 
     def button_request_interlock(self):

@@ -1,6 +1,7 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
 __version__ = 'v 1.0'
+# noinspection SpellCheckingInspection
 """
 Modbus RTU сканер - консольный, только int значения 2 байта
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
@@ -43,15 +44,16 @@ class MBScraper(client_RTU, Ui_MainWindow):
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
-        self.slaves_arr = kwargs.get('slaves_arr', [17])
-        self.quantity_registers_read = kwargs.get('quantity_registers_read', 5)
-        self.number_first_register_read = kwargs.get('number_first_register_read', 0)
+        self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
+        self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
+        self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
         self.traceback_error = None
         self.result = []
         self.result_of_reading = None
         self.slave_id_ = None
         self.error_count = 0
         self.fact_reg = 0
+        self.data_array_write = []
 
         super().__init__()
 
@@ -98,6 +100,7 @@ class MBScraper(client_RTU, Ui_MainWindow):
         self.fact_reg = len(self.data_result) - 1 - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
 
         App_modules.printing_to_console(self, mode_read_registers)
+        App_modules.set_text_to_window(self)
 
         self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
         return self.result
@@ -164,7 +167,7 @@ class MBScraper(client_RTU, Ui_MainWindow):
             self.traceback_error = traceback.format_exc()
             return "None"
 
-    def read_write_regs(self, slave_id):
+    def read_write_regs(self):
         while True:
             stop = DB_module.get_stop_from_db()
             if stop == 0:
@@ -175,16 +178,17 @@ class MBScraper(client_RTU, Ui_MainWindow):
                                                    read_count=self.quantity_registers_read,
                                                    write_address=self.number_first_register_write,
                                                    write_registers=values,  # self.values_for_write_registers,
-                                                   unit=slave_id)
+                                                   unit=self.slaves_arr[0])
             if hasattr(data, "registers"):
-                print(data.registers)
+                self.ptRawData.setPlainText(str(data.registers))
             else:
                 self.traceback_error = traceback.format_exc()
-                print(self.traceback_error)
+                self.ptRawData.setPlainText(str(self.traceback_error))
 
-    def write_regs(self, address=11, values=50, slave_id=16):
-        data = self.client.write_registers(address, values, unit=slave_id)
-        print(data)
+    def write_regs(self):
+        data = self.client.write_registers(self.number_first_register_write,
+                                           self.data_array_write, unit=self.slaves_arr[0])
+        self.ptRawData.setPlainText(str(data))
 
     def run(self):
         # Селектор режимов
@@ -203,16 +207,20 @@ class MBScraper(client_RTU, Ui_MainWindow):
                     stop = DB_module.get_stop_from_db()
                     if stop == 0:
                         break
-                    sleep(0.3)
-                    App_modules.read_holding_w(MBScraper, 0, 20, 16)
-                    sleep(0.3)
-                    App_modules.read_input_w(MBScraper, 0, 20, 16)
-                    sleep(0.3)
-                    App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
-                    sleep(0.3)
-                    App_modules.read_coil_w(MBScraper, 0, 10, 16)
+                    if self.ui.checkBox_hold.checkState():
+                        sleep(0.3)
+                        App_modules.read_holding_w(MBScraper, 0, 20, 16)
+                    if self.ui.checkBox_inp.checkState():
+                        sleep(0.3)
+                        App_modules.read_input_w(MBScraper, 0, 20, 16)
+                    if self.ui.checkBox_dis.checkState():
+                        sleep(0.3)
+                        App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
+                    if self.ui.checkBox_coil.checkState():
+                        sleep(0.3)
+                        App_modules.read_coil_w(MBScraper, 0, 10, 16)
             case 3:  # Циклическая запись и чтение одновременно
-                self.read_write_regs(16)
+                self.read_write_regs()
             case 4:  # Разовая запись
                 self.write_regs()
 
