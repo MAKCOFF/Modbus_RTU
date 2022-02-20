@@ -53,8 +53,10 @@ def printing_to_console(self, mode_read_registers):
                 text_window.append("   !pymodbus:\terrCnt: %s; last tb: %s" % (self.error_count, self.traceback_error))
 
 
-def read_holding_w(self, register, quantity_request, slave_id):
-    data = self.client.read_holding_registers(register, quantity_request, unit=slave_id)
+def read_holding_w(self):
+    data = self.client.read_holding_registers(self.number_first_register_read,
+                                              self.quantity_registers_read,
+                                              unit=self.slave_id_)
     assert (not data.isError())
     if hasattr(data, "registers"):
         return data.registers
@@ -63,8 +65,10 @@ def read_holding_w(self, register, quantity_request, slave_id):
         return "None"
 
 
-def read_input_w(self, register, quantity_request, slave_id):
-    data = self.client.read_input_registers(register, quantity_request, unit=slave_id)
+def read_input_w(self):
+    data = self.client.read_input_registers(self.number_first_register_read,
+                                            self.quantity_registers_read,
+                                            unit=self.slave_id_)
     assert (not data.isError())
     if hasattr(data, "registers"):
         return data.registers
@@ -73,8 +77,10 @@ def read_input_w(self, register, quantity_request, slave_id):
         return "None"
 
 
-def read_discrete_inputs_w(self, register, quantity_request, slave_id):
-    data = self.client.read_discrete_inputs(register, quantity_request, unit=slave_id)
+def read_discrete_inputs_w(self):
+    data = self.client.read_discrete_inputs(self.number_first_register_read,
+                                            self.quantity_registers_read,
+                                            unit=self.slave_id_)
     assert (not data.isError())
     if hasattr(data, "bits"):
         return data.bits
@@ -83,8 +89,10 @@ def read_discrete_inputs_w(self, register, quantity_request, slave_id):
         return "None"
 
 
-def read_coil_w(self, register, quantity_request, slave_id):
-    data = self.client.read_coils(register, quantity_request, unit=slave_id)
+def read_coil_w(self):
+    data = self.client.read_coils(self.number_first_register_read,
+                                  self.quantity_registers_read,
+                                  unit=self.slave_id_)
     assert (not data.isError())
     if hasattr(data, "bits"):
         return data.bits

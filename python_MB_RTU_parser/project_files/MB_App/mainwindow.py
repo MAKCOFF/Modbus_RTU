@@ -26,6 +26,8 @@ class Ui_MainWindow(object):
         self.cbPort = QtWidgets.QComboBox(self.centralWidget)
         self.cbPort.setGeometry(QtCore.QRect(10, 20, 141, 25))
         self.cbPort.setObjectName("cbPort")
+        self.cbPort.addItem("/dev/tnt0")
+        self.cbPort.addItem("/dev/ttyS1")
         self.cbBaud = QtWidgets.QComboBox(self.centralWidget)
         self.cbBaud.setGeometry(QtCore.QRect(160, 20, 141, 25))
         self.cbBaud.setObjectName("cbBaud")
@@ -132,6 +134,7 @@ class Ui_MainWindow(object):
         self.bRawDataClean = QtWidgets.QPushButton(self.centralWidget)
         self.bRawDataClean.setGeometry(QtCore.QRect(1170, 200, 91, 25))
         self.bRawDataClean.setObjectName("bRawDataClean")
+        self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.label_7 = QtWidgets.QLabel(self.centralWidget)
         self.label_7.setGeometry(QtCore.QRect(20, 210, 141, 17))
         self.label_7.setObjectName("label_7")
@@ -281,11 +284,11 @@ class Ui_MainWindow(object):
         self.checkBox_coil.setText(_translate("MainWindow", "COIL"))
 
 
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())
+# if __name__ == "__main__":
+#     import sys
+#     app = QtWidgets.QApplication(sys.argv)
+#     MainWindow = QtWidgets.QMainWindow()
+#     ui = Ui_MainWindow()
+#     ui.setupUi(MainWindow)
+#     MainWindow.show()
+#     sys.exit(app.exec_())

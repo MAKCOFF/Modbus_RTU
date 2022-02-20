@@ -1,9 +1,8 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
 __version__ = 'v 1.0'
-# noinspection SpellCheckingInspection
 """
-Modbus RTU сканер - консольный, только int значения 2 байта
+Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
 MODE 2. Непрерывное чтение
 MODE 3. Циклическая запись и чтение одним запросом
@@ -15,8 +14,10 @@ import Settings_MB
 import App_modules
 from time import sleep
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QThread
 from mainwindow import Ui_MainWindow
 import DB_module
+import sys
 
 
 class MBScraper(client_RTU, Ui_MainWindow):
@@ -32,11 +33,14 @@ class MBScraper(client_RTU, Ui_MainWindow):
                           4 COIL       ЧТЕНИЕ
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
+
+    app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
-    number_first_register_write = 0  # default value
+    MainWindow.show()
 
+    # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
 
     def __init__(self, **kwargs):
@@ -44,9 +48,12 @@ class MBScraper(client_RTU, Ui_MainWindow):
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
         self.data_result = []
-        self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
-        self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
-        self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
+        self.slaves_arr = kwargs.get('slaves_arr', [17])
+        self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
+        self.number_first_register_read = kwargs.get('number_first_register_read', 0)
+        # self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
+        # self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
+        # self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
         self.traceback_error = None
         self.result = []
         self.result_of_reading = None
@@ -54,6 +61,7 @@ class MBScraper(client_RTU, Ui_MainWindow):
         self.error_count = 0
         self.fact_reg = 0
         self.data_array_write = []
+        self.number_first_register_write = 0
 
         super().__init__()
 
@@ -191,6 +199,7 @@ class MBScraper(client_RTU, Ui_MainWindow):
         self.ptRawData.setPlainText(str(data))
 
     def run(self):
+        # self.btn_request.clicked.connect(lambda: self.run())
         # Селектор режимов
         match self.state_button:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
@@ -209,29 +218,40 @@ class MBScraper(client_RTU, Ui_MainWindow):
                         break
                     if self.ui.checkBox_hold.checkState():
                         sleep(0.3)
-                        App_modules.read_holding_w(MBScraper, 0, 20, 16)
+                        App_modules.read_holding_w(MBScraper)
                     if self.ui.checkBox_inp.checkState():
                         sleep(0.3)
-                        App_modules.read_input_w(MBScraper, 0, 20, 16)
+                        App_modules.read_input_w(MBScraper)
                     if self.ui.checkBox_dis.checkState():
                         sleep(0.3)
-                        App_modules.read_discrete_inputs_w(MBScraper, 0, 10, 16)
+                        App_modules.read_discrete_inputs_w(MBScraper)
                     if self.ui.checkBox_coil.checkState():
                         sleep(0.3)
-                        App_modules.read_coil_w(MBScraper, 0, 10, 16)
+                        App_modules.read_coil_w(MBScraper)
             case 3:  # Циклическая запись и чтение одновременно
                 self.read_write_regs()
             case 4:  # Разовая запись
                 self.write_regs()
 
+    def request(self):
+        self.btn_request.clicked.connect(lambda: self.run())
+
+    def run_app(self):
+        self.run()
+        sys.exit(self.app.exec_())
+
 
 if __name__ == '__main__':
-    MBScraper().run()
-#     import sys
-#     app = QtWidgets.QApplication(sys.argv)
-#     MainWindow = QtWidgets.QMainWindow()
-#     ui = Ui_MainWindow()
-#     ui.setupUi(MainWindow)
-#     MainWindow.show()
-#     sys.exit(app.exec_())
+
+    MBScraper.run_app(MBScraper())
+    # MBScraper().run()
+    # import sys
+    #
+    # app = QtWidgets.QApplication(sys.argv)
+    # MainWindow = QtWidgets.QMainWindow()
+    # ui = Ui_MainWindow()
+    # ui.setupUi(MainWindow)
+    # MainWindow.show()
+    # sys.exit(app.exec_())
+
 # self.ui.checkBox_hold.checkState()
