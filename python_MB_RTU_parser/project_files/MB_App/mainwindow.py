@@ -202,9 +202,6 @@ class Ui_MainWindow(object):
         self.cbDataBits.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-    def button_request_interlock(self):
-        pass
-
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "QMaster - Modbus RTU PC emulator"))

@@ -74,6 +74,8 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
         self.state_button = 0
 
+        self.btn_request.clicked.connect(lambda: self.run())
+
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.btn_stop_req.setEnabled(False)
 
@@ -227,6 +229,9 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.ptRawData.setPlainText(btn.text())
         # print(self.state_button)
 
+    def button_request_interlock(self):
+        pass
+
     def run(self):
         # self.btn_request.clicked.connect(lambda: self.run())
         # Селектор режимов
@@ -262,8 +267,8 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
             case 4:  # Разовая запись
                 self.write_regs()
 
-    def request(self):
-        self.btn_request.clicked.connect(lambda: self.run())
+    # def request(self):
+    #     self.btn_request.clicked.connect(lambda: self.run())
 
     # def run_app(self):
     #     self.run()
