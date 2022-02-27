@@ -20,7 +20,7 @@ import DB_module
 import sys
 
 
-class MBScraper(client_RTU, Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
     """
     Для вызова каждой функции класса создается новый объект класса.
     Объекту передаются аргументы, используемые для вызываемой функции
@@ -34,11 +34,11 @@ class MBScraper(client_RTU, Ui_MainWindow):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
+    # app = QtWidgets.QApplication(sys.argv)
+    # MainWindow = QtWidgets.QMainWindow()
+    # ui = Ui_MainWindow()
+    # ui.setupUi(MainWindow)
+    # MainWindow.show()
 
     # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
@@ -47,6 +47,7 @@ class MBScraper(client_RTU, Ui_MainWindow):
 
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
+
         self.data_result = []
         self.slaves_arr = kwargs.get('slaves_arr', [17])
         self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
@@ -64,6 +65,18 @@ class MBScraper(client_RTU, Ui_MainWindow):
         self.number_first_register_write = 0
 
         super().__init__()
+        self.setupUi(self)
+        # set radiobuttons of mode
+        self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
+        self.radio_single_r.setChecked(True)
+        self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
+        self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
+        self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
+        self.state_button = 0
+
+        self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
+        self.btn_stop_req.setEnabled(False)
+
 
     def __del__(self):
         self.client.close()
@@ -198,19 +211,35 @@ class MBScraper(client_RTU, Ui_MainWindow):
                                            self.data_array_write, unit=self.slaves_arr[0])
         self.ptRawData.setPlainText(str(data))
 
+        #  radiobutton state
+    def button_state(self, btn):
+        if btn.isChecked():
+            # self.btn_request.setEnabled(True)
+            match btn.text():
+                case "Single read":
+                    self.state_button = 1
+                case "Cicle read":
+                    self.state_button = 2
+                case "Cicle read/write":
+                    self.state_button = 3
+                case "Single write":
+                    self.state_button = 4
+        self.ptRawData.setPlainText(btn.text())
+        # print(self.state_button)
+
     def run(self):
         # self.btn_request.clicked.connect(lambda: self.run())
         # Селектор режимов
         match self.state_button:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
                 if self.ui.checkBox_hold.checkState():
-                    MBScraper()._read_init(1)
+                    MainWindow()._read_init(1)
                 if self.ui.checkBox_inp.checkState():
-                    MBScraper()._read_init(2)
+                    MainWindow()._read_init(2)
                 if self.ui.checkBox_dis.checkState():
-                    MBScraper()._read_init(3)
+                    MainWindow()._read_init(3)
                 if self.ui.checkBox_coil.checkState():
-                    MBScraper()._read_init(4)
+                    MainWindow()._read_init(4)
             case 2:  # Непрерывное чтение
                 while True:
                     stop = DB_module.get_stop_from_db()
@@ -218,16 +247,16 @@ class MBScraper(client_RTU, Ui_MainWindow):
                         break
                     if self.ui.checkBox_hold.checkState():
                         sleep(0.3)
-                        App_modules.read_holding_w(MBScraper)
+                        App_modules.read_holding_w(MainWindow)
                     if self.ui.checkBox_inp.checkState():
                         sleep(0.3)
-                        App_modules.read_input_w(MBScraper)
+                        App_modules.read_input_w(MainWindow)
                     if self.ui.checkBox_dis.checkState():
                         sleep(0.3)
-                        App_modules.read_discrete_inputs_w(MBScraper)
+                        App_modules.read_discrete_inputs_w(MainWindow)
                     if self.ui.checkBox_coil.checkState():
                         sleep(0.3)
-                        App_modules.read_coil_w(MBScraper)
+                        App_modules.read_coil_w(MainWindow)
             case 3:  # Циклическая запись и чтение одновременно
                 self.read_write_regs()
             case 4:  # Разовая запись
@@ -236,14 +265,20 @@ class MBScraper(client_RTU, Ui_MainWindow):
     def request(self):
         self.btn_request.clicked.connect(lambda: self.run())
 
-    def run_app(self):
-        self.run()
-        sys.exit(self.app.exec_())
+    # def run_app(self):
+    #     self.run()
+
+
+def run_app():
+    app = QtWidgets.QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())
 
 
 if __name__ == '__main__':
-
-    MBScraper.run_app(MBScraper())
+    run_app()
+    # MainWindow.run_app(MainWindow())
     # MBScraper().run()
     # import sys
     #

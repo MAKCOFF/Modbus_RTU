@@ -134,7 +134,6 @@ class Ui_MainWindow(object):
         self.bRawDataClean = QtWidgets.QPushButton(self.centralWidget)
         self.bRawDataClean.setGeometry(QtCore.QRect(1170, 200, 91, 25))
         self.bRawDataClean.setObjectName("bRawDataClean")
-        self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.label_7 = QtWidgets.QLabel(self.centralWidget)
         self.label_7.setGeometry(QtCore.QRect(20, 210, 141, 17))
         self.label_7.setObjectName("label_7")
@@ -143,7 +142,6 @@ class Ui_MainWindow(object):
         self.btn_request.setObjectName("btn_request")
         # self.btn_request.setEnabled(False)
         self.btn_stop_req = QtWidgets.QPushButton(self.centralWidget)
-        self.btn_stop_req.setEnabled(False)
         self.btn_stop_req.setGeometry(QtCore.QRect(560, 140, 101, 51))
         self.btn_stop_req.setObjectName("btn_stop_req")
         self.widget = QtWidgets.QWidget(self.centralWidget)
@@ -204,29 +202,6 @@ class Ui_MainWindow(object):
         self.cbDataBits.setCurrentIndex(3)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
-        #  radiobutton state
-        self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
-        self.radio_single_r.setChecked(True)
-        self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
-        self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
-        self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
-        self.state_button = 0
-
-    def button_state(self, btn):
-        if btn.isChecked():
-            # self.btn_request.setEnabled(True)
-            match btn.text():
-                case "Single read":
-                    self.state_button = 1
-                case "Cicle read":
-                    self.state_button = 2
-                case "Cicle read/write":
-                    self.state_button = 3
-                case "Single write":
-                    self.state_button = 4
-        self.ptRawData.setPlainText(btn.text())
-        # print(self.state_button)
-
     def button_request_interlock(self):
         pass
 
@@ -282,7 +257,6 @@ class Ui_MainWindow(object):
         self.checkBox_hold.setText(_translate("MainWindow", "HOLDING"))
         self.checkBox_dis.setText(_translate("MainWindow", "DISCRETE"))
         self.checkBox_coil.setText(_translate("MainWindow", "COIL"))
-
 
 # if __name__ == "__main__":
 #     import sys
