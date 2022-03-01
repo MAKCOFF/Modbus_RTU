@@ -35,12 +35,12 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
     # number_first_register_write = 0  # default value
-    # count_obj_of_class = 0  # debug
+    count_obj_of_class = 0  # debug
 
     def __init__(self, **kwargs):
 
-        # self.count_obj_of_class += 1  # debug
-        # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
+        self.count_obj_of_class += 1  # debug
+        print(f"Created obj of MBScraper : {self.count_obj_of_class}")  # debug
 
         self.data_result = []
         # self.slaves_arr = kwargs.get('slaves_arr', [17])
@@ -55,7 +55,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.slave_id_ = None
         self.error_count = 0
         self.fact_reg = 0
-        self.data_array_write = []
+        self.data_array_write = [50]
         self.number_first_register_write = 0
         self.status_work = False
         self.text_window = []
@@ -81,8 +81,8 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
     def __del__(self):
         self.client.close()
-        # self.count_obj_of_class -= 1  # debug
-        # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
+        self.count_obj_of_class -= 1  # debug
+        print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
 
     # @App_modules.time_of_function
     def _read_init(self, mode_read_registers=1):
