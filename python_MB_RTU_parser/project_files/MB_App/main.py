@@ -34,12 +34,6 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
     """
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
-    # app = QtWidgets.QApplication(sys.argv)
-    # MainWindow = QtWidgets.QMainWindow()
-    # ui = Ui_MainWindow()
-    # ui.setupUi(MainWindow)
-    # MainWindow.show()
-
     # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
 
@@ -49,9 +43,9 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         # print(f"Created obj of MBScraper : {self.count_obj}")  # debug
 
         self.data_result = []
-        self.slaves_arr = kwargs.get('slaves_arr', [17])
-        self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
-        self.number_first_register_read = kwargs.get('number_first_register_read', 0)
+        # self.slaves_arr = kwargs.get('slaves_arr', [17])
+        # self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
+        # self.number_first_register_read = kwargs.get('number_first_register_read', 0)
         # self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
         # self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
         # self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
@@ -63,12 +57,14 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.fact_reg = 0
         self.data_array_write = []
         self.number_first_register_write = 0
+        self.status_work = False
+        self.text_window = []
 
         super().__init__()
         self.setupUi(self)
         # set radiobuttons of mode
-        self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
         self.radio_single_r.setChecked(True)
+        self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
         self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
         self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
         self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
@@ -76,16 +72,19 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
         self.btn_request.clicked.connect(lambda: self.run())
 
+        self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
+        self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
+        self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
+
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.btn_stop_req.setEnabled(False)
-
 
     def __del__(self):
         self.client.close()
         # self.count_obj_of_class -= 1  # debug
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
 
-    @App_modules.time_of_function
+    # @App_modules.time_of_function
     def _read_init(self, mode_read_registers=1):
         self.error_count = 0
         for slave_id in self.slaves_arr:
@@ -123,7 +122,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.fact_reg = len(self.data_result) - 1 - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
 
         App_modules.printing_to_console(self, mode_read_registers)
-        App_modules.set_text_to_window(self)
+        # App_modules.set_text_to_window(self)
 
         self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
         return self.result
@@ -214,6 +213,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.ptRawData.setPlainText(str(data))
 
         #  radiobutton state
+
     def button_state(self, btn):
         if btn.isChecked():
             # self.btn_request.setEnabled(True)
@@ -227,23 +227,24 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                 case "Single write":
                     self.state_button = 4
         self.ptRawData.setPlainText(btn.text())
-        # print(self.state_button)
+        print(self.state_button)
 
     def button_request_interlock(self):
         pass
 
     def run(self):
-        # self.btn_request.clicked.connect(lambda: self.run())
         # Селектор режимов
         match self.state_button:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                if self.ui.checkBox_hold.checkState():
+                self.ptRawData.setPlainText("good 1")
+                # print(self.checkBox_hold.checkState())
+                if self.checkBox_hold.checkState() != 0:
                     MainWindow()._read_init(1)
-                if self.ui.checkBox_inp.checkState():
+                if self.checkBox_inp.checkState() != 0:
                     MainWindow()._read_init(2)
-                if self.ui.checkBox_dis.checkState():
+                if self.checkBox_dis.checkState() != 0:
                     MainWindow()._read_init(3)
-                if self.ui.checkBox_coil.checkState():
+                if self.checkBox_coil.checkState() != 0:
                     MainWindow()._read_init(4)
             case 2:  # Непрерывное чтение
                 while True:
@@ -265,6 +266,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
             case 3:  # Циклическая запись и чтение одновременно
                 self.read_write_regs()
             case 4:  # Разовая запись
+                # self.ptRawData.setPlainText("good 4")
                 self.write_regs()
 
     # def request(self):
@@ -274,7 +276,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
     #     self.run()
 
 
-def run_app():
+def main():
     app = QtWidgets.QApplication(sys.argv)
     window = MainWindow()
     window.show()
@@ -282,7 +284,7 @@ def run_app():
 
 
 if __name__ == '__main__':
-    run_app()
+    main()
     # MainWindow.run_app(MainWindow())
     # MBScraper().run()
     # import sys
@@ -293,5 +295,3 @@ if __name__ == '__main__':
     # ui.setupUi(MainWindow)
     # MainWindow.show()
     # sys.exit(app.exec_())
-
-# self.ui.checkBox_hold.checkState()
