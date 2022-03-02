@@ -9,15 +9,17 @@ MODE 3. Циклическая запись и чтение одним запр�
 MODE 4. Одного регистра
 """
 import traceback
-from pymodbus.client.sync import ModbusSerialClient as client_RTU
-import Settings_MB
-import App_modules
 from time import sleep
+import sys
+
+from pymodbus.client.sync import ModbusSerialClient as client_RTU
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThread
+
 from mainwindow import Ui_MainWindow
 import DB_module
-import sys
+import Settings_MB
+import App_modules
 
 
 class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
