@@ -24,7 +24,7 @@ def get_values_from_db(count=4):
         for i in cursor:
             value = i[0]
             values.append(value)
-    return print(values)
+    return values
 
 
 def change_values_in_db(item, count=0):

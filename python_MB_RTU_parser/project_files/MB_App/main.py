@@ -1,6 +1,6 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
-__version__ = 'v 1.0'
+__version__ = 'v 1.2'
 """
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
@@ -37,20 +37,20 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
     client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
 
     # number_first_register_write = 0  # default value
-    count_obj_of_class = 0  # debug
+    # count_obj_of_class = 0  # debug
 
     def __init__(self, **kwargs):
 
-        self.count_obj_of_class += 1  # debug
-        print(f"Created obj of MBScraper : {self.count_obj_of_class}")  # debug
+        # self.count_obj_of_class += 1  # debug
+        # print(f"Created obj of MBScraper : {self.count_obj_of_class}")  # debug
 
         self.data_result = []
         # self.slaves_arr = kwargs.get('slaves_arr', [17])
         # self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
         # self.number_first_register_read = kwargs.get('number_first_register_read', 0)
-        # self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
-        # self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
-        # self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
+        # self.slaves_arr = [self.sbSlaveID.value()]
+        # self.quantity_registers_read = self.sbAddress.value()
+        # self.number_first_register_read = self.sbCount.value()
         self.traceback_error = None
         self.result = []
         self.result_of_reading = None
@@ -64,8 +64,8 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
         super().__init__()
         self.setupUi(self)
-        # set radiobuttons of mode
-        self.radio_single_r.setChecked(True)
+        # set radiobuttons mode
+        # self.radio_single_r.setChecked(True)
         self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
         self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
         self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
@@ -78,17 +78,22 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
         self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
 
+        # self.slaves_arr = [self.sbSlaveID.value()]
+        # self.quantity_registers_read = self.sbCount.value()
+        # self.number_first_register_read = self.sbAddress.value()
+
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.btn_stop_req.setEnabled(False)
 
     def __del__(self):
         self.client.close()
-        self.count_obj_of_class -= 1  # debug
-        print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
+        # self.count_obj_of_class -= 1  # debug
+        # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
 
     # @App_modules.time_of_function
-    def _read_init(self, mode_read_registers=1):
+    def _read_init(self, mode_read_registers):
         self.error_count = 0
+        self.data_result = []
         for slave_id in self.slaves_arr:
             self.slave_id_ = slave_id
             # self.data_result.insert(0, self.slave_id_)  # Вставляем для консоли в начало списка адрес слэйва int
@@ -121,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                     case _:
                         return
 
-        self.fact_reg = len(self.data_result) - 1 - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
+        self.fact_reg = len(self.data_result) - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
 
         App_modules.printing_to_console(self, mode_read_registers)
         # App_modules.set_text_to_window(self)
@@ -136,7 +141,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         :return: Возвращает str значение регистра или None при ошибке чтения
         """
         data = self.client.read_holding_registers(register, 1, unit=slave_id)
-        assert (not data.isError())
+        # assert (not data.isError())
         if hasattr(data, "registers"):
             meta_data = data.registers
             return "".join(map(str, meta_data))  # Преобразуем из списка в строку
@@ -151,7 +156,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         :return: Возвращает str значение регистра или None при ошибке чтения
         """
         data = self.client.read_input_registers(register, 1, unit=slave_id)
-        assert (not data.isError())
+        # assert (not data.isError())
         if hasattr(data, "registers"):
             meta_data = data.registers
             return "".join(map(str, meta_data))
@@ -167,7 +172,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         """
         data_read = []
         data = self.client.read_discrete_inputs(register, 1, unit=slave_id)
-        assert (not data.isError())
+        # assert (not data.isError())
         if hasattr(data, "bits"):
             data_read.append(data.bits[0])
             return "".join(map(str, data_read))
@@ -183,7 +188,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         """
         data_read = []
         data = self.client.read_coils(register, 1, unit=slave_id)
-        assert (not data.isError())
+        # assert (not data.isError())
         if hasattr(data, "bits"):
             data_read.append(data.bits[0])
             return "".join(map(str, data_read))
@@ -229,25 +234,29 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                 case "Single write":
                     self.state_button = 4
         self.ptRawData.setPlainText(btn.text())
-        print(self.state_button)
+        # print(self.state_button)
 
     def button_request_interlock(self):
         pass
 
     def run(self):
         # Селектор режимов
+        self.slaves_arr = [self.sbSlaveID.value()]
+        self.quantity_registers_read = self.sbCount.value()
+        self.number_first_register_read = self.sbAddress.value()
+
         match self.state_button:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                self.ptRawData.setPlainText("good 1")
+                # self.ptRawData.setPlainText("good 1")
                 # print(self.checkBox_hold.checkState())
                 if self.checkBox_hold.checkState() != 0:
-                    MainWindow()._read_init(1)
+                    self._read_init(1)
                 if self.checkBox_inp.checkState() != 0:
-                    MainWindow()._read_init(2)
+                    self._read_init(2)
                 if self.checkBox_dis.checkState() != 0:
-                    MainWindow()._read_init(3)
+                    self._read_init(3)
                 if self.checkBox_coil.checkState() != 0:
-                    MainWindow()._read_init(4)
+                    self._read_init(4)
             case 2:  # Непрерывное чтение
                 while True:
                     stop = DB_module.get_stop_from_db()
@@ -287,13 +296,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    # MainWindow.run_app(MainWindow())
-    # MBScraper().run()
-    # import sys
-    #
-    # app = QtWidgets.QApplication(sys.argv)
-    # MainWindow = QtWidgets.QMainWindow()
-    # ui = Ui_MainWindow()
-    # ui.setupUi(MainWindow)
-    # MainWindow.show()
-    # sys.exit(app.exec_())

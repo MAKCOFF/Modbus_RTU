@@ -53,7 +53,7 @@ def printing_to_console(self, mode_read_registers):
     match mode_read_registers:
         case 1:
             print(
-                "Запрошено", len(self.data_result) - 1,
+                "Запрошено", self.quantity_registers_read,
                 "регистров по одному(size 2 BYTE) за каждый запрос \n",
                 "Считано c устройства", self.slave_id_, "HOLDING регистров", self.fact_reg, "\n",
                 self.data_result)
@@ -61,14 +61,14 @@ def printing_to_console(self, mode_read_registers):
                 print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (self.error_count, self.traceback_error))
         case 2:
             print(
-                "Запрошено", len(self.data_result) - 1,
+                "Запрошено", self.quantity_registers_read,
                 "регистров по одному(size 2 BYTE) за каждый запрос \n",
                 "Считано c устройства", self.slave_id_, "INPUT регистров", self.fact_reg, "\n", self.data_result)
             if self.error_count > 0:
                 print("   !pymodbus:\terr_cnt: %s; last tb: %s" % (self.error_count, self.traceback_error))
         case 3:
             print(
-                "Запрошено", len(self.data_result) - 1,
+                "Запрошено", self.quantity_registers_read,
                 "регистров по одному(size 1 BIT) за каждый запрос \n",
                 "Считано c устройства", self.slave_id_, "DISCRETE INPUT регистров", self.fact_reg, "\n",
                 self.data_result)
@@ -76,7 +76,7 @@ def printing_to_console(self, mode_read_registers):
                 print("   !pymodbus:\terrCnt: %s; last tb: %s" % (self.error_count, self.traceback_error))
         case 4:
             print(
-                "Запрошено", len(self.data_result) - 1,
+                "Запрошено", self.quantity_registers_read,
                 "регистров по одному(size 1 BIT) за каждый запрос \n",
                 "Считано c устройства", self.slave_id_, "COIL регистров", self.fact_reg, "\n", self.data_result)
             if self.error_count > 0:
