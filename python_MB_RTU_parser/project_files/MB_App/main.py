@@ -46,7 +46,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.get_system_serial_ports = Settings_MB.SettingsRTU()
         self.data_result = []
         self.traceback_error = None
-        self.result = []
+        # self.result = []
         self.result_of_reading = None
         self.slave_id_ = None
         self.error_count = 0
@@ -121,11 +121,11 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
         self.fact_reg = len(self.data_result) - self.error_count
 
-        # App_modules.printing_to_console(self, mode_read_registers)
         App_modules.set_text_to_window(self, mode_read_registers)
+        # App_modules.printing_to_console(self, mode_read_registers)
 
-        self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
-        return self.result
+        # self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
+        # return self.result
 
     def read_holding_regs(self, register, slave_id):
         """
@@ -240,10 +240,9 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
         match self.state_button:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                # self.ptRawData.setPlainText("good 1")
-                # print(self.checkBox_hold.checkState())
                 if self.checkBox_hold.checkState() != 0:
                     self._read_init(1)
+                    # self.ptRawData.appendPlainText("".join(map(str, self._read_init(1))))
                 if self.checkBox_inp.checkState() != 0:
                     self._read_init(2)
                 if self.checkBox_dis.checkState() != 0:
