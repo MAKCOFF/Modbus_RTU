@@ -61,6 +61,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.number_first_register_write = 0
         self.status_work = False
         self.text_window = []
+        self.time_diff = 0
 
         super().__init__()
         self.setupUi(self)
@@ -90,7 +91,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         # self.count_obj_of_class -= 1  # debug
         # print(f"Вызван деструктор класса, в памяти осталось объектов: {self.count_obj_of_class}")  # debug
 
-    # @App_modules.time_of_function
+    @App_modules.time_of_function
     def _read_init(self, mode_read_registers):
         self.error_count = 0
         self.data_result = []
@@ -126,10 +127,10 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                     case _:
                         return
 
-        self.fact_reg = len(self.data_result) - self.error_count  # Отнимаем от длины списка индекс адреса слэйва -1
+        self.fact_reg = len(self.data_result) - self.error_count
 
-        App_modules.printing_to_console(self, mode_read_registers)
-        # App_modules.set_text_to_window(self)
+        # App_modules.printing_to_console(self, mode_read_registers)
+        App_modules.set_text_to_window(self, mode_read_registers)
 
         self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
         return self.result
