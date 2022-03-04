@@ -17,32 +17,32 @@ def time_of_function(function):  # Считает время выполнени�
 def set_text_to_window(self, mode_read_registers):
     match mode_read_registers:
         case 1:
-            self.ptRawData.setPlainText(
+            self.ptRawData.appendPlainText(
                 f"Запрошено {self.quantity_registers_read} регистров по одному(size 2 BYTE) за каждый запрос \n Считано c устройства {self.slave_id_}  HOLDING регистров {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
                 self.ptRawData.appendPlainText(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
         case 2:
-            self.ptRawData.setPlainText(
+            self.ptRawData.appendPlainText(
                 f"Запрошено {self.quantity_registers_read} регистров по одному(size 2 BYTE) за каждый запрос \n Считано c устройства {self.slave_id_}  INPUT регистров {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
                 self.ptRawData.appendPlainText(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
         case 3:
-            self.ptRawData.setPlainText(
+            self.ptRawData.appendPlainText(
                 f"Запрошено {self.quantity_registers_read} регистров по одному(size 1 BIT) за каждый запрос \n Считано c устройства {self.slave_id_}  DISCRETE INPUTS {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
                 self.ptRawData.appendPlainText(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
         case 4:
-            self.ptRawData.setPlainText(
+            self.ptRawData.appendPlainText(
                 f"Запрошено {self.quantity_registers_read} регистров по одному(size 1 BIT) за каждый запрос \n Считано c устройства {self.slave_id_}  COIL регистров {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
                 self.ptRawData.appendPlainText(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
 
 
-def printing_to_console(self, mode_read_registers):  # Для консоли, не используется!!!
+def printing_to_console(self, mode_read_registers):  # Для консоли. сейчас НЕ используется!!!
     match mode_read_registers:
         case 1:
             print(

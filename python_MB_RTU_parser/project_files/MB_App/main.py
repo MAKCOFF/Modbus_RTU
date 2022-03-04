@@ -43,14 +43,8 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj_of_class}")  # debug
-
+        self.get_system_serial_ports = Settings_MB.SettingsRTU()
         self.data_result = []
-        # self.slaves_arr = kwargs.get('slaves_arr', [17])
-        # self.quantity_registers_read = kwargs.get('quantity_registers_read', 10)
-        # self.number_first_register_read = kwargs.get('number_first_register_read', 0)
-        # self.slaves_arr = [self.sbSlaveID.value()]
-        # self.quantity_registers_read = self.sbAddress.value()
-        # self.number_first_register_read = self.sbCount.value()
         self.traceback_error = None
         self.result = []
         self.result_of_reading = None
@@ -74,17 +68,15 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
         self.state_button = 0
 
         self.btn_request.clicked.connect(lambda: self.run())
+        self.btn_stop_req.clicked.connect(lambda: DB_module.change_value_in_db(0))
 
         self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
         self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
         self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
 
-        # self.slaves_arr = [self.sbSlaveID.value()]
-        # self.quantity_registers_read = self.sbCount.value()
-        # self.number_first_register_read = self.sbAddress.value()
-
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
-        self.btn_stop_req.setEnabled(False)
+        # self.btn_stop_req.setEnabled(False)
+        self.cbPort.addItems(self.get_system_serial_ports.portList)
 
     def __del__(self):
         self.client.close()
@@ -259,6 +251,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                 if self.checkBox_coil.checkState() != 0:
                     self._read_init(4)
             case 2:  # Непрерывное чтение
+                DB_module.change_value_in_db(1)
                 while True:
                     stop = DB_module.get_stop_from_db()
                     if stop == 0:
@@ -276,7 +269,10 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                         sleep(0.3)
                         App_modules.read_coil_w(MainWindow)
             case 3:  # Циклическая запись и чтение одновременно
+                # self.btn_stop_req.setEnabled(True)
+                DB_module.change_value_in_db(1)
                 self.read_write_regs()
+                # self.btn_stop_req.setEnabled(False)
             case 4:  # Разовая запись
                 # self.ptRawData.setPlainText("good 4")
                 self.write_regs()
