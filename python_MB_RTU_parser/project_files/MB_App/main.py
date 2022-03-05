@@ -15,6 +15,7 @@ import sys
 from pymodbus.client.sync import ModbusSerialClient as client_RTU
 from PyQt5 import QtCore, QtGui, QtWidgets
 from PyQt5.QtCore import QThread
+from PyQt5.QtSerialPort import QSerialPortInfo
 
 from mainwindow import Ui_MainWindow
 import DB_module
@@ -22,7 +23,69 @@ import Settings_MB
 import App_modules
 
 
-class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
+class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow, QSerialPortInfo):
+
+    def __init__(self):
+        self.portList = []
+        self.data_result = []
+        self.traceback_error = None
+        self.result_of_reading = None
+        self.slave_id_ = None
+        self.error_count = 0
+        self.fact_reg = 0
+        self.data_array_write = [50]
+        self.number_first_register_write = 0
+        self.status_work = False
+        self.text_window = []
+        self.time_diff = 0
+
+        super().__init__()
+        # Получаем доступные порты от системы
+        ports = QSerialPortInfo().availablePorts()
+        for port in ports:
+            self.portList.append(port.portName())
+        # print(self.portList)
+
+        self.setupUi(self)
+        # set radiobuttons mode
+        # self.radio_single_r.setChecked(True)
+        self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
+        self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
+        self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
+        self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
+        self.state_button = 0
+
+        self.btn_request.clicked.connect(lambda: MainWindowOld().run())
+        self.btn_stop_req.clicked.connect(lambda: DB_module.change_value_in_db(0))
+
+        self.slaves_arr = [self.sbSlaveID.value()]
+        self.quantity_registers_read = self.sbCount.value()
+        self.number_first_register_read = self.sbAddress.value()
+
+        self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
+        # self.btn_stop_req.setEnabled(False)
+        self.cbPort.addItems(self.get_system_serial_ports.portList)
+
+    def button_state(self, btn):
+        if btn.isChecked():
+            # self.btn_request.setEnabled(True)
+            match btn.text():
+                case "Single read":
+                    self.state_button = 1
+                case "Cicle read":
+                    self.state_button = 2
+                case "Cicle read/write":
+                    self.state_button = 3
+                case "Single write":
+                    self.state_button = 4
+        # self.ptRawData.setPlainText(btn.text())
+        # print(self.state_button)
+
+    def button_request_interlock(self):
+        pass
+
+
+class MainWindowOld(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
     """
     Для вызова каждой функции класса создается новый объект класса.
     Объекту передаются аргументы, используемые для вызываемой функции
@@ -257,20 +320,22 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
                         break
                     if self.ui.checkBox_hold.checkState():
                         sleep(0.3)
-                        App_modules.read_holding_w(MainWindow)
+                        App_modules.read_holding_w(MainWindowOld)
                     if self.ui.checkBox_inp.checkState():
                         sleep(0.3)
-                        App_modules.read_input_w(MainWindow)
+                        App_modules.read_input_w(MainWindowOld)
                     if self.ui.checkBox_dis.checkState():
                         sleep(0.3)
-                        App_modules.read_discrete_inputs_w(MainWindow)
+                        App_modules.read_discrete_inputs_w(MainWindowOld)
                     if self.ui.checkBox_coil.checkState():
                         sleep(0.3)
-                        App_modules.read_coil_w(MainWindow)
+                        App_modules.read_coil_w(MainWindowOld)
             case 3:  # Циклическая запись и чтение одновременно
                 # self.btn_stop_req.setEnabled(True)
                 DB_module.change_value_in_db(1)
+                self.btn_request.setEnabled(False)
                 self.read_write_regs()
+                self.btn_request.setEnabled(True)
                 # self.btn_stop_req.setEnabled(False)
             case 4:  # Разовая запись
                 # self.ptRawData.setPlainText("good 4")
@@ -285,7 +350,7 @@ class MainWindow(QtWidgets.QMainWindow, client_RTU, Ui_MainWindow):
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindowOld()
     window.show()
     sys.exit(app.exec_())
 
