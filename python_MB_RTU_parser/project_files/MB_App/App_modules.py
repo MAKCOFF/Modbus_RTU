@@ -7,7 +7,7 @@ def time_of_function(function):  # Считает время выполнени�
         start_time = time.perf_counter()
         res = function(self, *args)
         self.time_diff = (time.perf_counter() - start_time)
-        self.ptRawData.appendPlainText("Время опроса %.3f sec" % self.time_diff)
+        self.result.append("Время опроса %.3f sec" % self.time_diff)
         # print("за %.3f sec" % time_diff)
         return res
 
@@ -17,37 +17,37 @@ def time_of_function(function):  # Считает время выполнени�
 def set_text_to_window(self, mode_read_registers):
     match mode_read_registers:
         case 1:
-            self.ptRawData.appendPlainText(
+            self.result.append(
                 f"\nЗапрошено {self.quantity_registers_read} "
                 f"регистров по одному(size 2 BYTE) за каждый запрос \n Считано c устройства {self.slave_id_} "
                 f" HOLDING регистров {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
-                self.ptRawData.appendPlainText(
+                self.result.append(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
         case 2:
-            self.ptRawData.appendPlainText(
+            self.result.append(
                 f"\nЗапрошено {self.quantity_registers_read} "
                 f"регистров по одному(size 2 BYTE) за каждый запрос \n Считано c устройства {self.slave_id_}  "
                 f"INPUT регистров {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
-                self.ptRawData.appendPlainText(
+                self.result.append(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
         case 3:
-            self.ptRawData.appendPlainText(
+            self.result.append(
                 f"\nЗапрошено {self.quantity_registers_read} "
                 f"регистров по одному(size 1 BIT) за каждый запрос \n Считано c устройства {self.slave_id_}  "
                 f"DISCRETE INPUTS {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
-                self.ptRawData.appendPlainText(
+                self.result.append(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
         case 4:
-            self.ptRawData.appendPlainText(
+            self.result.append(
                 f"\n"
                 f"Запрошено {self.quantity_registers_read} "
                 f"регистров по одному(size 1 BIT) за каждый запрос \n Считано c устройства {self.slave_id_}"
                 f"  COIL регистров {self.fact_reg}  \n {self.data_result}")
             if self.error_count > 0:
-                self.ptRawData.appendPlainText(
+                self.result.append(
                     f"\n !pymodbus:\n err_cnt: {self.error_count} \n tb: {self.traceback_error}")
 
 
