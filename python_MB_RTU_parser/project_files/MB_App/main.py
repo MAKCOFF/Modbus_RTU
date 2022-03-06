@@ -8,6 +8,10 @@ MODE 2. Непрерывное чтение
 MODE 3. Циклическая запись и чтение одним запросом
 MODE 4. Одного регистра
 """
+# TODO:
+#  Добавить передачу обноленых параметров при повторном нажатии запроса
+#  Добавить функционал стоп циклов из ДБ
+#  Добавить запись значений с трансмит окна
 import traceback
 from time import sleep
 import sys
@@ -357,12 +361,6 @@ class MBPool(QtCore.QThread):
                 # self.btn_stop_req.setEnabled(False)
             case 4:  # Разовая запись
                 self.write_regs()
-
-    # def request(self):
-    #     self.btn_request.clicked.connect(lambda: self.run())
-
-    # def run_app(self):
-    #     self.run()
 
 
 def main():
