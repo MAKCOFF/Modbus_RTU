@@ -1,15 +1,18 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
-__version__ = 'v 1.2'
+__version__ = 'v 1.3'
 """
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
 MODE 2. Непрерывное чтение
 MODE 3. Циклическая запись и чтение одним запросом
-MODE 4. Одного регистра
+MODE 4. Запись одного регистра
+Работает в двух потоках: 
+В основном GUI
+В дополнительном - сам сканер
 """
 # TODO:
-#  Добавить передачу обноленых параметров при повторном нажатии запроса
+#  Доделать передачу парметров от GUI в МБпул
 #  Добавить функционал стоп циклов из ДБ
 #  Добавить запись значений с трансмит окна
 import traceback
@@ -22,7 +25,6 @@ from PyQt5.QtSerialPort import QSerialPortInfo
 
 from mainwindow import Ui_MainWindow
 import DB_module
-import Settings_MB
 import App_modules
 
 
@@ -30,17 +32,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
         self.portList = []
-        self.data_result = []
-        self.traceback_error = None
-        self.result_of_reading = None
-        self.slave_id_ = None
-        self.error_count = 0
-        self.fact_reg = 0
-        self.data_array_write = [50]
+        self.data_array_write = []
         self.number_first_register_write = 0
+        self.slaves_arr = []
+        self.quantity_registers_read = 1
+        self.number_first_register_read = 0
+
         self.status_work = False
         self.text_window = []
-        self.time_diff = 0
         self.mainthread = MBPool()
 
         # QtWidgets.QMainWindow.__init__(self, parent)
@@ -50,11 +49,9 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         ports = QSerialPortInfo().availablePorts()
         for port in ports:
             self.portList.append(port.portName())
-        # print(self.portList)
 
         self.setupUi(self)
-        # set radiobuttons mode
-        # self.radio_single_r.setChecked(True)
+
         self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
         self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
         self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
@@ -64,18 +61,20 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.btn_request.clicked.connect(self.button_request)
         self.btn_stop_req.clicked.connect(lambda: DB_module.change_value_in_db(0))
 
-        self.slaves_arr = [self.sbSlaveID.value()]
-        self.quantity_registers_read = self.sbCount.value()
-        self.number_first_register_read = self.sbAddress.value()
-
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
-        # self.btn_stop_req.setEnabled(False)
         self.cbPort.addItems(self.portList)
-        self.mainthread.sig_result.connect(self.set_text_window, QtCore.Qt.QueuedConnection)
+        self.mainthread.sig_result.connect(self.set_text_window)  # , QtCore.Qt.QueuedConnection
+        # RTU Settings default
+        self.current_serial_port: str = "/dev/tnt1"
+        self.current_baud_port: int = 9600
+        self.current_data_bits: int = 8
+        self.current_stop_bits: int = 1
+        self.current_parity: str = "None"
+        self.current_parity_modify: str = "N"
+        self.setting_RTU = {}
 
     def button_state(self, btn):
         if btn.isChecked():
-            # self.btn_request.setEnabled(True)
             match btn.text():
                 case "Single read":
                     self.state_button = 1
@@ -86,15 +85,44 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 case "Single write":
                     self.state_button = 4
         self.ptRawData.setPlainText(btn.text())
-        # print(self.state_button)
 
     def button_request(self):
-        self.btn_request.setEnabled(False)
-        self.mainthread.start()
+        # Данные для запроса Modbus
+        self.slaves_arr = [self.sbSlaveID.value()]
+        self.quantity_registers_read = self.sbCount.value()
+        self.number_first_register_read = self.sbAddress.value()
+        self.data_array_write = [50]
+        self.number_first_register_write = 0
 
-    def set_text_window(self, result):
-        self.ptRawData.appendPlainText("".join(map(str, result)))
+        # Получаем от GUI текущие настройки RTU
+        self.current_serial_port = self.cbPort.currentText()
+        self.current_baud_port = int(self.cbBaud.currentText())
+        self.current_data_bits = int(self.cbDataBits.currentText())
+        self.current_stop_bits = int(self.cbStopBits.currentText())
+        self.current_parity = self.cbParity.currentText()
+        match self.current_parity:
+            case "None":
+                self.current_parity_modify = "N"
+            case "Even":
+                self.current_parity_modify = "E"
+            case "Odd":
+                self.current_parity_modify = "O"
+        self.setting_RTU = {
+            "port": '/dev/' + self.current_serial_port,
+            "baudrate":  self.current_baud_port,
+            "timeout": 0.1,
+            "stopbits": self.current_stop_bits,
+            "parity": self.current_parity_modify,
+        }
+
+        self.btn_request.setEnabled(False)
+        self.mainthread.get_setting_from_window = self.setting_RTU  # Отправляем настройки в поток МБ пула
+        self.mainthread.start()  # Запускаем МБ пул в другом потоке
+
+    def set_text_window(self, result, status_run):
+        self.ptRawData.appendPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
         self.btn_request.setEnabled(True)
+        self.status_work = status_run
 
 
 class MBPool(QtCore.QThread):
@@ -109,8 +137,7 @@ class MBPool(QtCore.QThread):
                           3 DISCRETE   ЧТЕНИЕ
                           4 COIL       ЧТЕНИЕ
     """
-    client = client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
-    sig_result = QtCore.pyqtSignal(list)
+    sig_result = QtCore.pyqtSignal(list, bool)
 
     # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
@@ -119,7 +146,6 @@ class MBPool(QtCore.QThread):
 
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj_of_class}")  # debug
-        # self.get_system_serial_ports = Settings_MB.SettingsRTU()
         self.data_result = []
         self.traceback_error = None
         self.result = []
@@ -137,8 +163,12 @@ class MBPool(QtCore.QThread):
         self.slaves_arr = [17]
         self.quantity_registers_read = 10
         self.number_first_register_read = 0
+        self.method: str = 'rtu'
 
         super().__init__()
+
+        self.get_setting_from_window = {}
+        self.client = None  # client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
         # self.setupUi(self)
         # # set radiobuttons mode
         # # self.radio_single_r.setChecked(True)
@@ -296,32 +326,9 @@ class MBPool(QtCore.QThread):
                                            self.data_array_write, unit=self.slaves_arr[0])
         return str(data)
 
-        #  radiobutton state
-
-    # def button_state(self, btn):
-    #     if btn.isChecked():
-    #         # self.btn_request.setEnabled(True)
-    #         match btn.text():
-    #             case "Single read":
-    #                 self.state_button = 1
-    #             case "Cicle read":
-    #                 self.state_button = 2
-    #             case "Cicle read/write":
-    #                 self.state_button = 3
-    #             case "Single write":
-    #                 self.state_button = 4
-    #     self.ptRawData.setPlainText(btn.text())
-    #     # print(self.state_button)
-    #
-    # def button_request_interlock(self):
-    #     pass
-
     def run(self):
         # Селектор режимов
-        # self.slaves_arr = [self.sbSlaveID.value()]
-        # self.quantity_registers_read = self.sbCount.value()
-        # self.number_first_register_read = self.sbAddress.value()
-
+        self.client = client_RTU(self.method, **self.get_setting_from_window)
         match self.start_mode:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
                 # if self.checkBox_hold.checkState() != 0:
@@ -333,8 +340,8 @@ class MBPool(QtCore.QThread):
                 #     self._read_init(3)
                 # if self.checkBox_coil.checkState() != 0:
                 #     self._read_init(4)
-                self.sig_result.emit(self.result)
-                self.result = []
+                self.sig_result.emit(self.result, self.status_work)
+                self.result = []  # Очищаем текст лист от прошлого запроса
             case 2:  # Непрерывное чтение
                 DB_module.change_value_in_db(1)
                 while True:

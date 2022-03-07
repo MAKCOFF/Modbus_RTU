@@ -24,7 +24,6 @@ class Ui_MainWindow(object):
         self.cbPort = QtWidgets.QComboBox(self.centralWidget)
         self.cbPort.setGeometry(QtCore.QRect(10, 20, 141, 25))
         self.cbPort.setObjectName("cbPort")
-        # self.cbPort.addItem("/dev/tnt1")
         self.cbBaud = QtWidgets.QComboBox(self.centralWidget)
         self.cbBaud.setGeometry(QtCore.QRect(160, 20, 141, 25))
         self.cbBaud.setObjectName("cbBaud")
