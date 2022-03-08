@@ -31,16 +31,23 @@ import App_modules
 class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
+        self.start_mode = None
         self.portList = []
         self.data_array_write = []
-        self.number_first_register_write = 0
+        self.number_first_register_write: int = 0
         self.slaves_arr = []
-        self.quantity_registers_read = 1
-        self.number_first_register_read = 0
+        self.quantity_registers_read: int = 1
+        self.number_first_register_read: int = 0
+        self.data_for_request = {}
 
         self.status_work = False
         self.text_window = []
         self.mainthread = MBPool()
+
+        self.hold_check_state: int = 0
+        self.input_check_state: int = 0
+        self.discrete_check_state: int = 0
+        self.coil_check_state: int = 0
 
         # QtWidgets.QMainWindow.__init__(self, parent)
         # Ui_MainWindow.__init__(self)
@@ -87,13 +94,33 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.ptRawData.setPlainText(btn.text())
 
     def button_request(self):
+        # Передача выбранных режимов
+        self.start_mode = self.state_button
+        self.hold_check_state = self.checkBox_hold.checkState()
+        self.input_check_state = self.checkBox_inp.checkState()
+        self.discrete_check_state = self.checkBox_dis.checkState()
+        self.coil_check_state = self.checkBox_coil.checkState()
         # Данные для запроса Modbus
         self.slaves_arr = [self.sbSlaveID.value()]
         self.quantity_registers_read = self.sbCount.value()
         self.number_first_register_read = self.sbAddress.value()
         self.data_array_write = [50]
         self.number_first_register_write = 0
-
+        # Ложим в словарь для отправки
+        self.data_for_request = {
+            # Передача выбранных режимов
+            "start_mode": self.start_mode,
+            "hold_check_state": self.hold_check_state,
+            "input_check_state": self.input_check_state,
+            "discrete_check_state": self.discrete_check_state,
+            "coil_check_state": self.coil_check_state,
+            # Данные для запроса Modbus
+            "slaves_arr": self.slaves_arr,
+            "quantity_registers_read": self.quantity_registers_read,
+            "number_first_register_read": self.number_first_register_read,
+            "data_array_write": self.data_array_write,
+            "number_first_register_write": self.number_first_register_write
+        }
         # Получаем от GUI текущие настройки RTU
         self.current_serial_port = self.cbPort.currentText()
         self.current_baud_port = int(self.cbBaud.currentText())
@@ -116,13 +143,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         self.btn_request.setEnabled(False)
+        self.mainthread.__init__(**self.data_for_request)  # Отпраляем данные для запроса
         self.mainthread.get_setting_from_window = self.setting_RTU  # Отправляем настройки в поток МБ пула
         self.mainthread.start()  # Запускаем МБ пул в другом потоке
 
     def set_text_window(self, result, status_run):
         self.ptRawData.appendPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
         self.btn_request.setEnabled(True)
-        self.status_work = status_run
+        # self.status_work = status_run
 
 
 class MBPool(QtCore.QThread):
@@ -137,7 +165,7 @@ class MBPool(QtCore.QThread):
                           3 DISCRETE   ЧТЕНИЕ
                           4 COIL       ЧТЕНИЕ
     """
-    sig_result = QtCore.pyqtSignal(list, bool)
+    sig_result = QtCore.pyqtSignal(list)
 
     # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
@@ -153,17 +181,23 @@ class MBPool(QtCore.QThread):
         self.slave_id_ = None
         self.error_count = 0
         self.fact_reg = 0
-        self.data_array_write = []
-        self.number_first_register_write = kwargs.get("number_first_register_write", 0)
         self.status_work = False
         self.text_window = []
         self.time_diff = 0
         self.stop = DB_module.get_stop_from_db()
-        self.start_mode = 1
-        self.slaves_arr = [17]
-        self.quantity_registers_read = 10
-        self.number_first_register_read = 0
         self.method: str = 'rtu'
+        # Получаем из другого потока MainWindow
+        self.number_first_register_write = kwargs.get("number_first_register_write", 0)
+        self.slaves_arr = kwargs.get("slaves_arr", [1])
+        self.quantity_registers_read = kwargs.get("quantity_registers_read", 1)
+        self.number_first_register_read = kwargs.get("number_first_register_read", 0)
+        self.data_array_write = kwargs.get("data_array_write", [])
+
+        self.hold_check_state = kwargs.get("hold_check_state", 0)
+        self.input_check_state = kwargs.get("input_check_state", 0)
+        self.discrete_check_state = kwargs.get("discrete_check_state", 0)
+        self.coil_check_state = kwargs.get("coil_check_state", 0)
+        self.start_mode = kwargs.get("start_mode", 0)
 
         super().__init__()
 
@@ -197,7 +231,7 @@ class MBPool(QtCore.QThread):
     @App_modules.time_of_function
     def _read_init(self, mode_read_registers):
         self.error_count = 0
-        self.data_result = []
+        self.data_result = []  # Очищаем список от прошлого вывода
         self.status_work = True
 
         for slave_id in self.slaves_arr:
@@ -230,6 +264,7 @@ class MBPool(QtCore.QThread):
                             self.error_count += 1
                         self.data_result.append(self.result_of_reading)
                     case _:
+                        self.status_work = False
                         return
 
         self.fact_reg = len(self.data_result) - self.error_count
@@ -329,20 +364,20 @@ class MBPool(QtCore.QThread):
     def run(self):
         # Селектор режимов
         self.client = client_RTU(self.method, **self.get_setting_from_window)
+        print(self.hold_check_state, self.quantity_registers_read, self.start_mode)
         match self.start_mode:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
-                # if self.checkBox_hold.checkState() != 0:
-                self._read_init(1)
-                #     # self.ptRawData.appendPlainText("".join(map(str, self._read_init(1))))
-                # if self.checkBox_inp.checkState() != 0:
-                self._read_init(2)
-                # if self.checkBox_dis.checkState() != 0:
-                #     self._read_init(3)
-                # if self.checkBox_coil.checkState() != 0:
-                #     self._read_init(4)
-                self.sig_result.emit(self.result, self.status_work)
+                if self.hold_check_state != 0:
+                    self._read_init(1)
+                if self.input_check_state != 0:
+                    self._read_init(2)
+                if self.discrete_check_state != 0:
+                    self._read_init(3)
+                if self.coil_check_state != 0:
+                    self._read_init(4)
+                self.sig_result.emit(self.result)
                 self.result = []  # Очищаем текст лист от прошлого запроса
-            case 2:  # Непрерывное чтение
+            case 2:  # Циклическое чтение
                 DB_module.change_value_in_db(1)
                 while True:
                     stop = DB_module.get_stop_from_db()
