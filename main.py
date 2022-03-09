@@ -104,7 +104,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.slaves_arr = [self.sbSlaveID.value()]
         self.quantity_registers_read = self.sbCount.value()
         self.number_first_register_read = self.sbAddress.value()
-        self.data_array_write = [50]
+        self.data_array_write = DB_module.get_values_from_db(count=4)
         self.number_first_register_write = 0
         # Ложим в словарь для отправки
         self.data_for_request = {
@@ -119,7 +119,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "quantity_registers_read": self.quantity_registers_read,
             "number_first_register_read": self.number_first_register_read,
             "data_array_write": self.data_array_write,
-            "number_first_register_write": self.number_first_register_write
+            "number_first_register_write": self.number_first_register_write,
         }
         # Получаем от GUI текущие настройки RTU
         self.current_serial_port = self.cbPort.currentText()
@@ -143,14 +143,15 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         self.btn_request.setEnabled(False)
-        self.mainthread.__init__(**self.data_for_request)  # Отпраляем данные для запроса
+        # self.mainthread.__init__(**self.data_for_request)  # Отпраляем данные для запроса
         self.mainthread.get_setting_from_window = self.setting_RTU  # Отправляем настройки в поток МБ пула
+        self.mainthread.data_for_request = self.data_for_request
         self.mainthread.start()  # Запускаем МБ пул в другом потоке
 
     def set_text_window(self, result, status_run):
         self.ptRawData.appendPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
         self.btn_request.setEnabled(True)
-        # self.status_work = status_run
+        self.status_work = status_run
 
 
 class MBPool(QtCore.QThread):
@@ -165,12 +166,12 @@ class MBPool(QtCore.QThread):
                           3 DISCRETE   ЧТЕНИЕ
                           4 COIL       ЧТЕНИЕ
     """
-    sig_result = QtCore.pyqtSignal(list)
+    sig_result = QtCore.pyqtSignal(list, bool)
 
     # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
 
-    def __init__(self, **kwargs):
+    def __init__(self):
 
         # self.count_obj_of_class += 1  # debug
         # print(f"Created obj of MBScraper : {self.count_obj_of_class}")  # debug
@@ -187,21 +188,22 @@ class MBPool(QtCore.QThread):
         self.stop = DB_module.get_stop_from_db()
         self.method: str = 'rtu'
         # Получаем из другого потока MainWindow
-        self.number_first_register_write = kwargs.get("number_first_register_write", 0)
-        self.slaves_arr = kwargs.get("slaves_arr", [1])
-        self.quantity_registers_read = kwargs.get("quantity_registers_read", 1)
-        self.number_first_register_read = kwargs.get("number_first_register_read", 0)
-        self.data_array_write = kwargs.get("data_array_write", [])
+        self.number_first_register_write = 0
+        self.slaves_arr = [1]
+        self.quantity_registers_read = 1
+        self.number_first_register_read = 0
+        self.data_array_write = []
 
-        self.hold_check_state = kwargs.get("hold_check_state", 0)
-        self.input_check_state = kwargs.get("input_check_state", 0)
-        self.discrete_check_state = kwargs.get("discrete_check_state", 0)
-        self.coil_check_state = kwargs.get("coil_check_state", 0)
-        self.start_mode = kwargs.get("start_mode", 0)
+        self.hold_check_state = 0
+        self.input_check_state = 0
+        self.discrete_check_state = 0
+        self.coil_check_state = 0
+        self.start_mode = 0
 
         super().__init__()
 
         self.get_setting_from_window = {}
+        self.data_for_request = {}
         self.client = None  # client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
         # self.setupUi(self)
         # # set radiobuttons mode
@@ -363,8 +365,20 @@ class MBPool(QtCore.QThread):
 
     def run(self):
         # Селектор режимов
+        # Принимем данные из Mainwindow в момент нажатия запроса
         self.client = client_RTU(self.method, **self.get_setting_from_window)
-        print(self.hold_check_state, self.quantity_registers_read, self.start_mode)
+        self.number_first_register_write = self.data_for_request.get("number_first_register_write", 0)
+        self.slaves_arr = self.data_for_request.get("slaves_arr", [1])
+        self.quantity_registers_read = self.data_for_request.get("quantity_registers_read", 1)
+        self.number_first_register_read = self.data_for_request.get("number_first_register_read", 0)
+        self.data_array_write = self.data_for_request.get("data_array_write", [])
+
+        self.hold_check_state = self.data_for_request.get("hold_check_state", 0)
+        self.input_check_state = self.data_for_request.get("input_check_state", 0)
+        self.discrete_check_state = self.data_for_request.get("discrete_check_state", 0)
+        self.coil_check_state = self.data_for_request.get("coil_check_state", 0)
+        self.start_mode = self.data_for_request.get("start_mode", 0)
+        # print(self.hold_check_state, self.quantity_registers_read, self.start_mode)
         match self.start_mode:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
                 if self.hold_check_state != 0:
@@ -375,7 +389,7 @@ class MBPool(QtCore.QThread):
                     self._read_init(3)
                 if self.coil_check_state != 0:
                     self._read_init(4)
-                self.sig_result.emit(self.result)
+                self.sig_result.emit(self.result, self.status_work)
                 self.result = []  # Очищаем текст лист от прошлого запроса
             case 2:  # Циклическое чтение
                 DB_module.change_value_in_db(1)
