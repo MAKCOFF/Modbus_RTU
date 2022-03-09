@@ -12,9 +12,8 @@ MODE 4. Запись одного регистра
 В дополнительном - сам сканер
 """
 # TODO:
-#  Доделать передачу парметров от GUI в МБпул
-#  Добавить функционал стоп циклов из ДБ
-#  Добавить запись значений с трансмит окна
+#  Добавить запись значений с трансмит окна из БД
+#  Доделать блокировку кнопок
 import traceback
 from time import sleep
 import sys
@@ -71,6 +70,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.cbPort.addItems(self.portList)
         self.mainthread.sig_result.connect(self.set_text_window)  # , QtCore.Qt.QueuedConnection
+        self.mainthread.sig_while_result.connect(self.set_while_text_window)
+        self.mainthread.sig_stop_request.connect(self.set_interlock_btn_request)
         # RTU Settings default
         self.current_serial_port: str = "/dev/tnt1"
         self.current_baud_port: int = 9600
@@ -143,15 +144,31 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         }
 
         self.btn_request.setEnabled(False)
-        # self.mainthread.__init__(**self.data_for_request)  # Отпраляем данные для запроса
+        # self.mainthread.__init__(**self.data_for_request)
         self.mainthread.get_setting_from_window = self.setting_RTU  # Отправляем настройки в поток МБ пула
-        self.mainthread.data_for_request = self.data_for_request
+        self.mainthread.data_for_request = self.data_for_request  # Отпраляем данные для запроса
         self.mainthread.start()  # Запускаем МБ пул в другом потоке
 
     def set_text_window(self, result, status_run):
         self.ptRawData.appendPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
         self.btn_request.setEnabled(True)
         self.status_work = status_run
+        if self.status_work:
+            self.btn_request.setEnabled(False)
+
+    def set_while_text_window(self, result, status_run):
+        self.ptRawData.setPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
+        self.btn_request.setEnabled(True)
+        self.status_work = status_run
+        if self.status_work:
+            self.btn_request.setEnabled(False)
+
+    def set_interlock_btn_request(self, status_run):
+        self.status_work = status_run
+        if self.status_work:
+            self.btn_request.setEnabled(False)
+        else:
+            self.btn_request.setEnabled(True)
 
 
 class MBPool(QtCore.QThread):
@@ -167,8 +184,9 @@ class MBPool(QtCore.QThread):
                           4 COIL       ЧТЕНИЕ
     """
     sig_result = QtCore.pyqtSignal(list, bool)
+    sig_while_result = QtCore.pyqtSignal(list, bool)
+    sig_stop_request = QtCore.pyqtSignal(bool)
 
-    # number_first_register_write = 0  # default value
     # count_obj_of_class = 0  # debug
 
     def __init__(self):
@@ -188,42 +206,23 @@ class MBPool(QtCore.QThread):
         self.stop = DB_module.get_stop_from_db()
         self.method: str = 'rtu'
         # Получаем из другого потока MainWindow
-        self.number_first_register_write = 0
-        self.slaves_arr = [1]
-        self.quantity_registers_read = 1
-        self.number_first_register_read = 0
-        self.data_array_write = []
+        self.number_first_register_write: int = 0
+        self.slaves_arr: list = [1]
+        self.quantity_registers_read: int = 1
+        self.number_first_register_read: int = 0
+        self.data_array_write: list = []
 
-        self.hold_check_state = 0
-        self.input_check_state = 0
-        self.discrete_check_state = 0
-        self.coil_check_state = 0
-        self.start_mode = 0
+        self.hold_check_state: int = 0
+        self.input_check_state: int = 0
+        self.discrete_check_state: int = 0
+        self.coil_check_state: int = 0
+        self.start_mode: int = 0
 
         super().__init__()
 
         self.get_setting_from_window = {}
         self.data_for_request = {}
         self.client = None  # client_RTU(Settings_MB.method, **Settings_MB.setting_RTU)
-        # self.setupUi(self)
-        # # set radiobuttons mode
-        # # self.radio_single_r.setChecked(True)
-        # self.radio_single_r.toggled.connect(lambda: self.button_state(self.radio_single_r))
-        # self.radio_cicle_r.toggled.connect(lambda: self.button_state(self.radio_cicle_r))
-        # self.radio_cicle_rw.toggled.connect(lambda: self.button_state(self.radio_cicle_rw))
-        # self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
-        # self.state_button = 0
-        #
-        # self.btn_request.clicked.connect(lambda: self.run())
-        # self.btn_stop_req.clicked.connect(lambda: DB_module.change_value_in_db(0))
-        #
-        # self.slaves_arr = kwargs.get('slaves_arr', [self.sbSlaveID.value()])
-        # self.quantity_registers_read = kwargs.get('quantity_registers_read', self.sbAddress.value())
-        # self.number_first_register_read = kwargs.get('number_first_register_read', self.sbCount.value())
-        #
-        # self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
-        # # self.btn_stop_req.setEnabled(False)
-        # self.cbPort.addItems(self.get_system_serial_ports.portList)
 
     def __del__(self):
         self.client.close()
@@ -273,8 +272,11 @@ class MBPool(QtCore.QThread):
 
         App_modules.set_text_to_window(self, mode_read_registers)
         # App_modules.printing_to_console(self, mode_read_registers)
+
         self.status_work = False
+
         # self.result = [self.data_result, self.fact_reg, self.traceback_error, self.error_count]
+
         return self.result
 
     def read_holding_regs(self, register, slave_id):
@@ -343,6 +345,8 @@ class MBPool(QtCore.QThread):
         while True:
             stop = DB_module.get_stop_from_db()
             if stop == 0:
+                self.status_work = False
+                self.sig_stop_request.emit(self.status_work)
                 break
             self.status_work = True
             values = DB_module.get_values_from_db(count=4)
@@ -353,10 +357,13 @@ class MBPool(QtCore.QThread):
                                                    write_registers=values,  # self.values_for_write_registers,
                                                    unit=self.slaves_arr[0])
             if hasattr(data, "registers"):
-                return str(data.registers)
+                self.text_window = data.registers
+                self.sig_while_result.emit(self.text_window, self.status_work)
             else:
                 self.traceback_error = traceback.format_exc()
-                return str(self.traceback_error)
+                self.text_window.append(self.traceback_error)
+                self.sig_while_result.emit(self.text_window, self.status_work)
+            self.text_window = []
 
     def write_regs(self):
         data = self.client.write_registers(self.number_first_register_write,
@@ -378,7 +385,6 @@ class MBPool(QtCore.QThread):
         self.discrete_check_state = self.data_for_request.get("discrete_check_state", 0)
         self.coil_check_state = self.data_for_request.get("coil_check_state", 0)
         self.start_mode = self.data_for_request.get("start_mode", 0)
-        # print(self.hold_check_state, self.quantity_registers_read, self.start_mode)
         match self.start_mode:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
                 if self.hold_check_state != 0:
@@ -394,27 +400,34 @@ class MBPool(QtCore.QThread):
             case 2:  # Циклическое чтение
                 DB_module.change_value_in_db(1)
                 while True:
+                    self.status_work = True
                     stop = DB_module.get_stop_from_db()
                     if stop == 0:
+                        self.status_work = False
+                        self.sig_stop_request.emit(self.status_work)
                         break
-                    if self.ui.checkBox_hold.checkState():
+                    if self.hold_check_state != 0:
                         sleep(0.3)
-                        App_modules.read_holding_w(MBPool)
-                    if self.ui.checkBox_inp.checkState():
+                        hr = App_modules.read_holding_w(self)
+                        self.text_window.append(hr)
+                    if self.input_check_state != 0:
                         sleep(0.3)
-                        App_modules.read_input_w(MBPool)
-                    if self.ui.checkBox_dis.checkState():
+                        ir = App_modules.read_input_w(self)
+                        self.text_window.append(ir)
+                    if self.discrete_check_state != 0:
                         sleep(0.3)
-                        App_modules.read_discrete_inputs_w(MBPool)
-                    if self.ui.checkBox_coil.checkState():
+                        di = App_modules.read_discrete_inputs_w(self)
+                        self.text_window.append(di)
+                    if self.coil_check_state != 0:
                         sleep(0.3)
-                        App_modules.read_coil_w(MBPool)
+                        cr = App_modules.read_coil_w(self)
+                        self.text_window.append(cr)
+                    #  TODO Разделить сигналы работы и возвртв результата
+                    self.sig_while_result.emit(self.text_window, self.status_work)
+                    self.text_window = []
             case 3:  # Циклическая запись и чтение одновременно
-                # self.btn_stop_req.setEnabled(True)
                 DB_module.change_value_in_db(1)
                 self.read_write_regs()
-                # self.btn_request.setEnabled(True)
-                # self.btn_stop_req.setEnabled(False)
             case 4:  # Разовая запись
                 self.write_regs()
 

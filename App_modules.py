@@ -88,8 +88,8 @@ def printing_to_console(self, mode_read_registers):  # Для консоли. с
 def read_holding_w(self):
     data = self.client.read_holding_registers(self.number_first_register_read,
                                               self.quantity_registers_read,
-                                              unit=self.slave_id_)
-    assert (not data.isError())
+                                              unit=self.slaves_arr[0])
+    # assert (not data.isError())
     if hasattr(data, "registers"):
         return data.registers
     else:
@@ -100,8 +100,8 @@ def read_holding_w(self):
 def read_input_w(self):
     data = self.client.read_input_registers(self.number_first_register_read,
                                             self.quantity_registers_read,
-                                            unit=self.slave_id_)
-    assert (not data.isError())
+                                            unit=self.slaves_arr[0])
+    # assert (not data.isError())
     if hasattr(data, "registers"):
         return data.registers
     else:
@@ -112,8 +112,8 @@ def read_input_w(self):
 def read_discrete_inputs_w(self):
     data = self.client.read_discrete_inputs(self.number_first_register_read,
                                             self.quantity_registers_read,
-                                            unit=self.slave_id_)
-    assert (not data.isError())
+                                            unit=self.slaves_arr[0])
+    # assert (not data.isError())
     if hasattr(data, "bits"):
         return data.bits
     else:
@@ -124,8 +124,8 @@ def read_discrete_inputs_w(self):
 def read_coil_w(self):
     data = self.client.read_coils(self.number_first_register_read,
                                   self.quantity_registers_read,
-                                  unit=self.slave_id_)
-    assert (not data.isError())
+                                  unit=self.slaves_arr[0])
+    # assert (not data.isError())
     if hasattr(data, "bits"):
         return data.bits
     else:
