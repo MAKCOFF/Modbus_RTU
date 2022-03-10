@@ -13,7 +13,6 @@ MODE 4. Запись одного регистра
 """
 # TODO:
 #  Добавить запись значений с трансмит окна из БД
-#  Доделать блокировку кнопок
 import traceback
 from time import sleep
 import sys
@@ -71,7 +70,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.cbPort.addItems(self.portList)
         self.mainthread.sig_result.connect(self.set_text_window)  # , QtCore.Qt.QueuedConnection
         self.mainthread.sig_while_result.connect(self.set_while_text_window)
-        self.mainthread.sig_stop_request.connect(self.set_interlock_btn_request)
+        self.mainthread.sig_status_work.connect(self.set_interlock_btn_request)
         # RTU Settings default
         self.current_serial_port: str = "/dev/tnt1"
         self.current_baud_port: int = 9600
@@ -143,32 +142,25 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             "parity": self.current_parity_modify,
         }
 
-        self.btn_request.setEnabled(False)
         # self.mainthread.__init__(**self.data_for_request)
         self.mainthread.get_setting_from_window = self.setting_RTU  # Отправляем настройки в поток МБ пула
         self.mainthread.data_for_request = self.data_for_request  # Отпраляем данные для запроса
         self.mainthread.start()  # Запускаем МБ пул в другом потоке
 
-    def set_text_window(self, result, status_run):
+    def set_text_window(self, result):
         self.ptRawData.appendPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
-        self.btn_request.setEnabled(True)
-        self.status_work = status_run
-        if self.status_work:
-            self.btn_request.setEnabled(False)
 
-    def set_while_text_window(self, result, status_run):
+    def set_while_text_window(self, result):
         self.ptRawData.setPlainText("".join(map(str, result)))  # Получаем данные из потока МБ пула
-        self.btn_request.setEnabled(True)
-        self.status_work = status_run
-        if self.status_work:
-            self.btn_request.setEnabled(False)
 
     def set_interlock_btn_request(self, status_run):
         self.status_work = status_run
         if self.status_work:
             self.btn_request.setEnabled(False)
+            self.btn_stop_req.setEnabled(True)
         else:
             self.btn_request.setEnabled(True)
+            self.btn_stop_req.setEnabled(False)
 
 
 class MBPool(QtCore.QThread):
@@ -183,9 +175,9 @@ class MBPool(QtCore.QThread):
                           3 DISCRETE   ЧТЕНИЕ
                           4 COIL       ЧТЕНИЕ
     """
-    sig_result = QtCore.pyqtSignal(list, bool)
-    sig_while_result = QtCore.pyqtSignal(list, bool)
-    sig_stop_request = QtCore.pyqtSignal(bool)
+    sig_result = QtCore.pyqtSignal(list)
+    sig_while_result = QtCore.pyqtSignal(list)
+    sig_status_work = QtCore.pyqtSignal(bool)
 
     # count_obj_of_class = 0  # debug
 
@@ -346,24 +338,26 @@ class MBPool(QtCore.QThread):
             stop = DB_module.get_stop_from_db()
             if stop == 0:
                 self.status_work = False
-                self.sig_stop_request.emit(self.status_work)
+                self.sig_status_work.emit(self.status_work)
                 break
             self.status_work = True
+            # TODO Сделать подсчет количества регистров для записи динамическим
             values = DB_module.get_values_from_db(count=4)
             sleep(0.5)
             data = self.client.readwrite_registers(read_address=self.number_first_register_read,
                                                    read_count=self.quantity_registers_read,
                                                    write_address=self.number_first_register_write,
-                                                   write_registers=values,  # self.values_for_write_registers,
+                                                   write_registers=values,
                                                    unit=self.slaves_arr[0])
             if hasattr(data, "registers"):
                 self.text_window = data.registers
-                self.sig_while_result.emit(self.text_window, self.status_work)
+                self.sig_while_result.emit(self.text_window)
             else:
                 self.traceback_error = traceback.format_exc()
                 self.text_window.append(self.traceback_error)
-                self.sig_while_result.emit(self.text_window, self.status_work)
+                self.sig_while_result.emit(self.text_window)
             self.text_window = []
+            self.sig_status_work.emit(self.status_work)
 
     def write_regs(self):
         data = self.client.write_registers(self.number_first_register_write,
@@ -387,6 +381,8 @@ class MBPool(QtCore.QThread):
         self.start_mode = self.data_for_request.get("start_mode", 0)
         match self.start_mode:
             case 1:  # Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
+                self.status_work = True
+                self.sig_status_work.emit(self.status_work)
                 if self.hold_check_state != 0:
                     self._read_init(1)
                 if self.input_check_state != 0:
@@ -395,8 +391,10 @@ class MBPool(QtCore.QThread):
                     self._read_init(3)
                 if self.coil_check_state != 0:
                     self._read_init(4)
-                self.sig_result.emit(self.result, self.status_work)
+                self.sig_result.emit(self.result)
                 self.result = []  # Очищаем текст лист от прошлого запроса
+                self.status_work = False
+                self.sig_status_work.emit(self.status_work)
             case 2:  # Циклическое чтение
                 DB_module.change_value_in_db(1)
                 while True:
@@ -404,7 +402,7 @@ class MBPool(QtCore.QThread):
                     stop = DB_module.get_stop_from_db()
                     if stop == 0:
                         self.status_work = False
-                        self.sig_stop_request.emit(self.status_work)
+                        self.sig_status_work.emit(self.status_work)
                         break
                     if self.hold_check_state != 0:
                         sleep(0.3)
@@ -422,9 +420,9 @@ class MBPool(QtCore.QThread):
                         sleep(0.3)
                         cr = App_modules.read_coil_w(self)
                         self.text_window.append(cr)
-                    #  TODO Разделить сигналы работы и возвртв результата
-                    self.sig_while_result.emit(self.text_window, self.status_work)
-                    self.text_window = []
+                    self.sig_while_result.emit(self.text_window)
+                    self.text_window = []  # очищаем список от прошлого вывода
+                    self.sig_status_work.emit(self.status_work)
             case 3:  # Циклическая запись и чтение одновременно
                 DB_module.change_value_in_db(1)
                 self.read_write_regs()
