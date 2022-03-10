@@ -1,6 +1,9 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
 __version__ = 'v 1.3'
+
+import pymodbus.pdu
+
 """
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
@@ -13,6 +16,7 @@ MODE 4. Запись одного регистра
 """
 # TODO:
 #  Добавить запись значений с трансмит окна из БД
+#  Доделать MODE 4
 import traceback
 from time import sleep
 import sys
@@ -31,6 +35,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         self.start_mode = None
         self.portList = []
+        self.values_for_write = []
         self.data_array_write = []
         self.number_first_register_write: int = 0
         self.slaves_arr = []
@@ -136,7 +141,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                 self.current_parity_modify = "O"
         self.setting_RTU = {
             "port": '/dev/' + self.current_serial_port,
-            "baudrate":  self.current_baud_port,
+            "baudrate": self.current_baud_port,
             "timeout": 0.1,
             "stopbits": self.current_stop_bits,
             "parity": self.current_parity_modify,
@@ -161,6 +166,12 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             self.btn_request.setEnabled(True)
             self.btn_stop_req.setEnabled(False)
+
+    def upload_values_for_write(self):  # Для записи в ДБ данных из трансмит окна
+        count = 0
+        for item in self.values_for_write:
+            DB_module.change_values_in_db(item, count)
+            count += 1
 
 
 class MBPool(QtCore.QThread):
@@ -202,7 +213,7 @@ class MBPool(QtCore.QThread):
         self.slaves_arr: list = [1]
         self.quantity_registers_read: int = 1
         self.number_first_register_read: int = 0
-        self.data_array_write: list = []
+        self.data_array_write: list = [50]
 
         self.hold_check_state: int = 0
         self.input_check_state: int = 0
@@ -360,9 +371,18 @@ class MBPool(QtCore.QThread):
             self.sig_status_work.emit(self.status_work)
 
     def write_regs(self):
-        data = self.client.write_registers(self.number_first_register_write,
-                                           self.data_array_write, unit=self.slaves_arr[0])
-        return str(data)
+        try:
+            self.result = self.client.write_registers(self.number_first_register_write,
+                                                      self.data_array_write, unit=self.slaves_arr[0])
+        except pymodbus.pdu.ModbusExceptions as err:
+            self.result.append(str(err))
+        except pymodbus.pdu.IllegalFunctionRequest as err:
+            self.result.append(str(err))
+        except pymodbus.pdu.ExceptionResponse as err:
+            self.result.append(str(err))
+        print(self.result)
+        self.sig_result.emit(self.result)
+        self.result = []
 
     def run(self):
         # Селектор режимов

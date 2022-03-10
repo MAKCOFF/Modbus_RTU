@@ -30,22 +30,22 @@ def get_values_from_db(count=4):
 def change_values_in_db(item, count=0):
     with sqlite3.connect('database.db') as db:
         cursor = db.cursor()
+        query = f'UPDATE expenses SET value = {item} WHERE id = {count}'
         try:
-            query = f'UPDATE expenses SET value = {item} WHERE id = {count}'
+            cursor.execute(query)
         except sqlite3.DatabaseError as err:
             print("Ошибка:", err)
-        cursor.execute(query)
         db.commit()
 
 
 def change_value_in_db(start):
     with sqlite3.connect('database.db') as db:
         cursor = db.cursor()
+        query = f'UPDATE start SET value = {start}'
         try:
-            query = f'UPDATE start SET value = {start}'
+            cursor.execute(query)
         except sqlite3.DatabaseError as err:
             print("Ошибка:", err)
-        cursor.execute(query)
         db.commit()
 
 
@@ -110,13 +110,4 @@ def insert_values_to_db():
 # query = """ CREATE TABLE IF NOT EXISTS expenses(id INTEGER, value INTEGER) """
 # querys = dict(
 #     query0=f'SELECT value FROM expenses WHERE id < 5',
-#     query1=f'SELECT value FROM expenses WHERE id < 5',
-#     query2=f'SELECT value FROM expenses WHERE id < 5',
-#     query3=f'SELECT value FROM expenses WHERE id < 5',
-#     query4=f'SELECT value FROM expenses WHERE id < 5',
-#     query5=f'SELECT value FROM expenses WHERE id < 5',
-#     query6=f'SELECT value FROM expenses WHERE id < 5',
-#     query7=f'SELECT value FROM expenses WHERE id < 5',
-#     query8=f'SELECT value FROM expenses WHERE id < 5',
-#     query9=f'SELECT value FROM expenses WHERE id < 5',
 # )
