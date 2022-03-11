@@ -1,9 +1,6 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
-__version__ = 'v 1.3'
-
-import pymodbus.pdu
-
+__version__ = 'v 1.4'
 """
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
@@ -96,6 +93,8 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
                     self.state_button = 3
                 case "Single write":
                     self.state_button = 4
+                    self.set_items_write()
+
         self.ptRawData.setPlainText(btn.text())
 
     def button_request(self):
@@ -172,6 +171,14 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         for item in self.values_for_write:
             DB_module.change_values_in_db(item, count)
             count += 1
+
+    def set_items_write(self):
+        self.tableData.horizontalHeader().setVisible(True)
+        self.tableData.verticalHeader().setVisible(True)
+        self.tableData.setRowCount(3)
+        self.tableData.setItem(0, 0, QtWidgets.QTableWidgetItem("Text in column 1"))
+        self.tableData.setItem(0, 1, QtWidgets.QTableWidgetItem("Text in column 2"))
+        self.tableData.setItem(0, 2, QtWidgets.QTableWidgetItem("Text in column 3"))
 
 
 class MBPool(QtCore.QThread):
@@ -370,19 +377,20 @@ class MBPool(QtCore.QThread):
             self.text_window = []
             self.sig_status_work.emit(self.status_work)
 
-    def write_regs(self):
-        try:
-            self.result = self.client.write_registers(self.number_first_register_write,
+    def write_regs(self, mode_single_write: int = 0):
+        match mode_single_write:
+            case 1:
+                #  HOLDING
+                self.result = self.client.write_registers(self.number_first_register_write,
+                                                          self.data_array_write, unit=self.slaves_arr[0])
+                self.sig_result.emit(self.result)
+                self.result = []
+            case 2:
+                #  COIL
+                self.result = self.client.write_coils(self.number_first_register_write,
                                                       self.data_array_write, unit=self.slaves_arr[0])
-        except pymodbus.pdu.ModbusExceptions as err:
-            self.result.append(str(err))
-        except pymodbus.pdu.IllegalFunctionRequest as err:
-            self.result.append(str(err))
-        except pymodbus.pdu.ExceptionResponse as err:
-            self.result.append(str(err))
-        print(self.result)
-        self.sig_result.emit(self.result)
-        self.result = []
+                self.sig_result.emit(self.result)
+                self.result = []
 
     def run(self):
         # Селектор режимов
@@ -447,7 +455,7 @@ class MBPool(QtCore.QThread):
                 DB_module.change_value_in_db(1)
                 self.read_write_regs()
             case 4:  # Разовая запись
-                self.write_regs()
+                self.write_regs(1)
 
 
 def main():
