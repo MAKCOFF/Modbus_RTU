@@ -1,6 +1,6 @@
 #!/home/max/Загрузки/Python-3.10.2/python
 # -*- coding: utf-8 -*-
-__version__ = 'v 1.4'
+__version__ = 'v 1.5'
 """
 Modbus RTU сканер
 MODE 1. Сканирует заданные регистры по одному, выводит строку "None" если регистра не существует
@@ -12,7 +12,7 @@ MODE 4. Запись одного регистра
 В дополнительном - сам сканер
 """
 # TODO:
-#  Добавить запись значений с трансмит окна из БД
+#  Добавить запись значений с трансмит окна в БД
 #  Доделать MODE 4
 import traceback
 from time import sleep
@@ -48,6 +48,7 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.input_check_state: int = 0
         self.discrete_check_state: int = 0
         self.coil_check_state: int = 0
+        self.count: int = 0
 
         # QtWidgets.QMainWindow.__init__(self, parent)
         # Ui_MainWindow.__init__(self)
@@ -65,8 +66,10 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
         self.radio_single_w.toggled.connect(lambda: self.button_state(self.radio_single_w))
         self.state_button = 0
 
-        self.btn_request.clicked.connect(self.button_request)
+        self.btn_request.clicked.connect(self.send_request)
         self.btn_stop_req.clicked.connect(lambda: DB_module.change_value_in_db(0))
+        self.btn_add_items.clicked.connect(lambda: self.add_items())
+        self.btn_del_items.clicked.connect(lambda: self.del_item())
 
         self.bRawDataClean.clicked.connect(lambda: self.ptRawData.setPlainText(""))
         self.cbPort.addItems(self.portList)
@@ -87,17 +90,40 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             match btn.text():
                 case "Single read":
                     self.state_button = 1
+                    self.checkBox_inp.setEnabled(True)
+                    self.checkBox_dis.setEnabled(True)
+                    self.checkBox_coil.setEnabled(True)
+                    self.checkBox_hold.setEnabled(True)
+                    self.tableData.horizontalHeader().setVisible(False)
+                    self.tableData.verticalHeader().setVisible(False)
                 case "Cicle read":
                     self.state_button = 2
+                    self.checkBox_inp.setEnabled(True)
+                    self.checkBox_dis.setEnabled(True)
+                    self.checkBox_coil.setEnabled(True)
+                    self.checkBox_hold.setEnabled(True)
+                    self.tableData.horizontalHeader().setVisible(False)
+                    self.tableData.verticalHeader().setVisible(False)
                 case "Cicle read/write":
                     self.state_button = 3
+                    self.checkBox_inp.setEnabled(False)
+                    self.checkBox_dis.setEnabled(False)
+                    self.checkBox_coil.setEnabled(False)
+                    self.checkBox_hold.setEnabled(True)
+                    self.tableData.horizontalHeader().setVisible(True)
+                    self.tableData.verticalHeader().setVisible(True)
                 case "Single write":
                     self.state_button = 4
-                    self.set_items_write()
+                    self.checkBox_inp.setEnabled(False)
+                    self.checkBox_dis.setEnabled(False)
+                    self.checkBox_coil.setEnabled(True)
+                    self.checkBox_hold.setEnabled(True)
+                    self.tableData.horizontalHeader().setVisible(True)
+                    self.tableData.verticalHeader().setVisible(True)
 
         self.ptRawData.setPlainText(btn.text())
 
-    def button_request(self):
+    def send_request(self):
         # Передача выбранных режимов
         self.start_mode = self.state_button
         self.hold_check_state = self.checkBox_hold.checkState()
@@ -167,18 +193,30 @@ class MainWindow(QtWidgets.QMainWindow, Ui_MainWindow):
             self.btn_stop_req.setEnabled(False)
 
     def upload_values_for_write(self):  # Для записи в ДБ данных из трансмит окна
+        # TODO Сделать довление значений в БД
         count = 0
         for item in self.values_for_write:
             DB_module.change_values_in_db(item, count)
             count += 1
 
-    def set_items_write(self):
-        self.tableData.horizontalHeader().setVisible(True)
-        self.tableData.verticalHeader().setVisible(True)
-        self.tableData.setRowCount(3)
-        self.tableData.setItem(0, 0, QtWidgets.QTableWidgetItem("Text in column 1"))
-        self.tableData.setItem(0, 1, QtWidgets.QTableWidgetItem("Text in column 2"))
-        self.tableData.setItem(0, 2, QtWidgets.QTableWidgetItem("Text in column 3"))
+    def add_items(self):
+        if self.state_button == 4:
+            if self.checkBox_hold.checkState() != 0:
+                self.tableData.setRowCount(self.count+1)
+                self.tableData.setItem(self.count, 0, QtWidgets.QTableWidgetItem("HOLDING"))
+                self.tableData.setItem(self.count, 1, QtWidgets.QTableWidgetItem(f"{self.count}"))
+                self.tableData.setItem(self.count, 2, QtWidgets.QTableWidgetItem("10"))
+                self.count += 1
+            if self.checkBox_coil.checkState() != 0:
+                self.tableData.setRowCount(self.count+1)
+                self.tableData.setItem(self.count, 0, QtWidgets.QTableWidgetItem("COIL"))
+                self.tableData.setItem(self.count, 1, QtWidgets.QTableWidgetItem(f"{self.count}"))
+                self.tableData.setItem(self.count, 2, QtWidgets.QTableWidgetItem("1"))
+                self.count += 1
+
+    def del_item(self):
+        # TODO Сделать удаление значений
+        pass
 
 
 class MBPool(QtCore.QThread):
