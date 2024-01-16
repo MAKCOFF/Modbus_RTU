@@ -1,4 +1,4 @@
-#!/home/max/Загрузки/Python-3.10.2/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 __version__ = 'v 1.0'
 '''
